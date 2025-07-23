@@ -1,0 +1,36 @@
+{
+  "name": "se_project_express",
+  "version": "1.0.0",
+  "description": "A RESTful API for the WTWR app, built with Express and MongoDB",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tripleten-com/se_project_express.git"
+  },
+  "keywords": [
+    "API",
+    "WTWR"
+  ],
+  "author": "Fred Hobbs",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tripleten-com/se_project_express/issues"
+  },
+  "homepage": "https://github.com/tripleten-com/se_project_express#readme",
+  "devDependencies": {
+    "eslint": "^8.46.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-prettier": "^4.2.1"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "mongoose": "^8.16.4"
+  }
+}
