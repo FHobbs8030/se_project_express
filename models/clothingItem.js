@@ -5,14 +5,19 @@ const clothingItemSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  weather: {
-    type: String,
-    enum: ['hot', 'warm', 'cold'],
-    required: true,
-  },
   imageUrl: {
     type: String,
     required: true,
+  },
+  weather: {
+    type: String,
+    required: true,
+    enum: ['hot', 'warm', 'cold'],
+  },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: 'user',
   },
 });
 
