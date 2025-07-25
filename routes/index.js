@@ -1,8 +1,10 @@
+// routes/index.js
 const router = require('express').Router();
-const userRoutes = require('./users');
-const clothingRoutes = require('./clothes');
+const clothesRouter = require('./clothes');
+const usersRouter = require('./users');
 
-router.use('/users', userRoutes);
-router.use('/items', clothingRoutes);
+router.use('/clothes', clothesRouter);
+router.use('/users', usersRouter);
 
 module.exports = router;
+
