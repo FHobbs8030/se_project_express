@@ -1,9 +1,9 @@
-const ClothingItem = require('../models/clothingItem'); // Adjust path if needed
+const ClothingItem = require('../models/clothingItem');
 
 module.exports.getClothingItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => res.send(items))
-    .catch((err) => res.status(500).send({ message: 'Server error' }));
+    .catch(() => res.status(500).send({ message: 'Server error' }));
 };
 
 module.exports.createClothingItem = (req, res) => {
@@ -12,6 +12,10 @@ module.exports.createClothingItem = (req, res) => {
 
   ClothingItem.create({ name, imageUrl, weather, owner })
     .then((item) => res.status(201).send(item))
-    .catch((err) => res.status(400).send({ message: 'Bad request' }));
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        return res.status(400).send({ message: err.message });
+      }
+      return res.status(500).send({ message: 'Server error' });
+    });
 };
-
