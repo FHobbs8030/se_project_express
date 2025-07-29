@@ -8,7 +8,6 @@ const {
   STATUS_INTERNAL_SERVER_ERROR,
 } = require('../utils/constants');
 
-// Get all clothing items
 module.exports.getClothingItems = (req, res) => {
   ClothingItem.find({})
     .then((items) => res.status(STATUS_OK).send(items))
@@ -17,8 +16,7 @@ module.exports.getClothingItems = (req, res) => {
     );
 };
 
-// Create a new clothing item
-module.exports.createClothingItem = (req, res) => {
+module.exports.addClothingItem = (req, res) => {
   const { name, imageUrl, weather } = req.body;
   const owner = req.user._id;
 
@@ -32,7 +30,6 @@ module.exports.createClothingItem = (req, res) => {
     });
 };
 
-// Like a clothing item
 module.exports.likeItem = (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid item ID' });
@@ -53,7 +50,6 @@ module.exports.likeItem = (req, res) => {
     });
 };
 
-// Unlike a clothing item
 module.exports.unlikeItem = (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
     return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid item ID' });
@@ -74,7 +70,6 @@ module.exports.unlikeItem = (req, res) => {
     });
 };
 
-// Delete a clothing item
 module.exports.deleteClothingItem = (req, res) => {
   const { id } = req.params;
 
