@@ -9,7 +9,7 @@ const app = express();
 
 mongoose.connect('mongodb://127.0.0.1:27017/wtwr_db');
 
-app.use(cors());  
+app.use(cors());
 
 app.use((req, res, next) => {
   req.user = {
@@ -19,6 +19,12 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
+
+// Simple test route to check if backend is running
+app.get('/', (req, res) => {
+  res.send('API is running');
+});
+
 app.use(routes);
 
 app.use((req, res) => {
