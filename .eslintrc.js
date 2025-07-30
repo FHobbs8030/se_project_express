@@ -3,16 +3,13 @@ module.exports = {
     node: true,
     es2021: true,
   },
-  extends: [
-    'eslint:recommended',
-    'plugin:prettier/recommended', // Enables eslint-plugin-prettier and displays prettier errors as ESLint errors
-  ],
+  extends: ['airbnb-base'],
   parserOptions: {
     ecmaVersion: 12,
     sourceType: 'module',
   },
   rules: {
-    // Customize your rules here
-    'no-console': 'off', // Allow console.log statements (useful for debugging)
+    'no-console': 'off',
+    'no-underscore-dangle': ['error', { allow: ['_id'] }],
   },
 };
