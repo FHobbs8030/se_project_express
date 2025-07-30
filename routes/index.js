@@ -1,8 +1,13 @@
 const router = require('express').Router();
-const clothesRouter = require('./clothes');
+const itemsRouter = require('./items');
 const usersRouter = require('./users');
 
-router.use('/clothes', clothesRouter);
+router.use('/items', itemsRouter);
 router.use('/users', usersRouter);
+
+// 404 middleware
+router.use((req, res) => {
+  res.status(404).send({ message: 'Requested resource not found' });
+});
 
 module.exports = router;
