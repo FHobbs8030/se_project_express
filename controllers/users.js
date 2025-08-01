@@ -1,48 +1,62 @@
-const mongoose = require('mongoose');
 const User = require('../models/user');
-const {
-  STATUS_OK,
-  STATUS_CREATED,
-  STATUS_BAD_REQUEST,
-  STATUS_INTERNAL_SERVER_ERROR,
-  STATUS_NOT_FOUND,
-} = require('../utils/constants');
 
-module.exports.getUsers = (req, res) => User.find({})
-  .then((users) => res.status(STATUS_OK).send(users))
-  .catch(() => res.status(STATUS_INTERNAL_SERVER_ERROR).send({
-    message: 'Server error while retrieving users',
-  }));
-
-module.exports.getUser = (req, res) => {
-  const { userId } = req.params;
-
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
-    return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid user ID' });
-  }
-
-  return User.findById(userId)
-    .then((user) => {
-      if (!user) {
-        return res.status(STATUS_NOT_FOUND).send({ message: 'User not found' });
-      }
-      return res.status(STATUS_OK).send(user);
-    })
-    .catch(() => res.status(STATUS_INTERNAL_SERVER_ERROR).send({
-      message: 'Server error while retrieving user',
-    }));
+module.exports.getUsers = (req, res, next) => {
+  User.find({})
+    .then((users) => res.send(users))
+    .catch(next);
 };
 
-module.exports.createUser = (req, res) => {
-  const {
-    name,
-    avatar,
-  } = req.body;
+module.exports.getUserById = (req, res, next) => {
+  const { userId } = req.params;
 
-  return User.create({
-    name,
-    avatar,
-  })
-    .then((user) => res.status(STATUS_CREATED).send(user))
-    .catch((err) => res.status(STATUS_BAD_REQUEST).send({ message: err.message }));
+  User.findById(userId)
+    .orFail(() => new Error('NotFound'))
+    .then((user) => res.send(user))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Invalid user ID' });
+      } else if (err.message === 'NotFound') {
+        res.status(404).send({ message: 'User not found' });
+      } else {
+        next(err);
+      }
+    });
+};
+
+module.exports.createUser = (req, res, next) => {
+  const { name, avatar } = req.body;
+
+  User.create({ name, avatar })
+    .then((user) => res.status(201).send(user))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'Invalid user data' });
+      } else {
+        next(err);
+      }
+    });
+};
+
+module.exports.updateUser = (req, res, next) => {
+  const { userId } = req.params;
+  const { name, avatar } = req.body;
+
+  User.findByIdAndUpdate(
+    userId,
+    { name, avatar },
+    { new: true, runValidators: true }
+  )
+    .orFail(() => new Error('NotFound'))
+    .then((updatedUser) => res.send(updatedUser))
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        res.status(400).send({ message: 'Invalid update data' });
+      } else if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Invalid user ID' });
+      } else if (err.message === 'NotFound') {
+        res.status(404).send({ message: 'User not found' });
+      } else {
+        next(err);
+      }
+    });
 };
