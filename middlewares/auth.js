@@ -1,8 +1,9 @@
+// auth middleware
 import jwt from 'jsonwebtoken';
 
 const { JWT_SECRET = 'dev-secret' } = process.env;
 
-export default (req, res, next) => {
+const auth = (req, res, next) => {
   const { authorization } = req.headers;
 
   if (!authorization || !authorization.startsWith('Bearer ')) {
@@ -21,3 +22,5 @@ export default (req, res, next) => {
   req.user = payload;
   return next();
 };
+
+export default auth;

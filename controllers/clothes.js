@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const clothes = require('../models/clothingItem');
+const ClothingItem = require('../models/clothingItem');
 const {
   STATUS_OK,
   STATUS_CREATED,
@@ -8,14 +8,12 @@ const {
   STATUS_NOT_FOUND,
 } = require('../utils/constants');
 
-// GET /items
 module.exports.getItems = (req, res) => {
-  clothes.find({})
+  ClothingItem.find({})
     .then((items) => res.status(STATUS_OK).send(items))
     .catch(() => res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server error retrieving items' }));
 };
 
-// GET /items/:id
 module.exports.getItem = (req, res) => {
   const { id } = req.params;
 
@@ -23,7 +21,7 @@ module.exports.getItem = (req, res) => {
     return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid item ID' });
   }
 
-  return clothes.findById(id)
+  return ClothingItem.findById(id)
     .then((item) => {
       if (item) {
         return res.status(STATUS_OK).send(item);
@@ -33,12 +31,11 @@ module.exports.getItem = (req, res) => {
     .catch(() => res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server error retrieving item' }));
 };
 
-// POST /items
 module.exports.createItem = (req, res) => {
   const { name, weather, imageUrl } = req.body;
   const owner = req.user._id;
 
-  clothes.create({
+  ClothingItem.create({
     name,
     weather,
     imageUrl,
@@ -53,7 +50,6 @@ module.exports.createItem = (req, res) => {
     });
 };
 
-// DELETE /items/:id
 module.exports.deleteItem = (req, res) => {
   const { id } = req.params;
 
@@ -61,7 +57,7 @@ module.exports.deleteItem = (req, res) => {
     return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid item ID' });
   }
 
-  return clothes.findByIdAndDelete(id)
+  return ClothingItem.findByIdAndDelete(id)
     .then((item) => {
       if (item) {
         return res.status(STATUS_OK).send({ message: 'Item deleted successfully' });
@@ -71,7 +67,6 @@ module.exports.deleteItem = (req, res) => {
     .catch(() => res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server error deleting item' }));
 };
 
-// PUT /items/:id/likes
 module.exports.likeItem = (req, res) => {
   const { id } = req.params;
 
@@ -79,7 +74,7 @@ module.exports.likeItem = (req, res) => {
     return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid item ID' });
   }
 
-  return clothes.findByIdAndUpdate(
+  return ClothingItem.findByIdAndUpdate(
     id,
     { $addToSet: { likes: req.user._id } },
     { new: true },
@@ -93,7 +88,6 @@ module.exports.likeItem = (req, res) => {
     .catch(() => res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server error liking item' }));
 };
 
-// DELETE /items/:id/likes
 module.exports.unlikeItem = (req, res) => {
   const { id } = req.params;
 
@@ -101,7 +95,7 @@ module.exports.unlikeItem = (req, res) => {
     return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid item ID' });
   }
 
-  return clothes.findByIdAndUpdate(
+  return ClothingItem.findByIdAndUpdate(
     id,
     { $pull: { likes: req.user._id } },
     { new: true },

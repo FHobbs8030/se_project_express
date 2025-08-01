@@ -2,6 +2,7 @@
   "name": "se_project_express",
   "version": "1.0.0",
   "description": "A RESTful API for the WTWR app, built with Express and MongoDB",
+  "type": "module",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
@@ -32,6 +33,7 @@
     "eslint-plugin-prettier": "^4.2.1"
   },
   "dependencies": {
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",

@@ -1,11 +1,9 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-
 import routes from './routes/index';
-import { createUser, login } from './middlewares/auth';
-
-const auth = require('./middlewares/auth');
+import auth from './middlewares/auth';
+import { createUser, login } from './controllers/auth';
 
 const { PORT = 3001 } = process.env;
 
@@ -37,5 +35,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ WTWR API is running on http://localhost:${PORT}`);
+  console.log(`WTWR API is running on http://localhost:${PORT}`);
 });
