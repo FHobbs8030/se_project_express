@@ -1,20 +1,20 @@
 const router = require('express').Router();
 const {
   getItems,
+  createItem,
   deleteItem,
   likeItem,
   unlikeItem,
-  createItem,
+  getItem,
 } = require('../controllers/clothes');
 const auth = require('../middlewares/auth');
+const validateObjectId = require('../middlewares/validateObjectId');
 
-// Public route to view items
 router.get('/', getItems);
-
-// Protected routes
+router.get('/:id', validateObjectId('id'), getItem);
 router.post('/', auth, createItem);
-router.delete('/:id', auth, deleteItem);
-router.put('/:id/likes', auth, likeItem);
-router.delete('/:id/likes', auth, unlikeItem);
+router.delete('/:id', auth, validateObjectId('id'), deleteItem);
+router.put('/:id/likes', auth, validateObjectId('id'), likeItem);
+router.delete('/:id/likes', auth, validateObjectId('id'), unlikeItem);
 
 module.exports = router;

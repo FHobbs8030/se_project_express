@@ -1,21 +1,15 @@
-const mongoose = require('mongoose');
-const validator = require('validator');
+const router = require('express').Router();
+const {
+  getUsers,
+  getUserById,
+  getCurrentUser,
+  updateUser,
+} = require('../controllers/users');
+const auth = require('../middlewares/auth');
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-    minlength: 2,
-    maxlength: 30,
-  },
-  avatar: {
-    type: String,
-    required: true,
-    validate: {
-      validator: (v) => validator.isURL(v),
-      message: 'Invalid URL format',
-    },
-  },
-});
+router.get('/', getUsers);
+router.get('/me', auth, getCurrentUser);
+router.patch('/me', auth, updateUser);
+router.get('/:userId', getUserById);
 
-module.exports = mongoose.model('User', userSchema);
+module.exports = router;
