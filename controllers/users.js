@@ -23,6 +23,23 @@ module.exports.getUserById = (req, res, next) => {
     });
 };
 
+module.exports.getCurrentUser = (req, res, next) => {
+  const userId = req.user._id;
+
+  User.findById(userId)
+    .orFail(() => new Error('NotFound'))
+    .then((user) => res.send(user))
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        res.status(400).send({ message: 'Invalid user ID' });
+      } else if (err.message === 'NotFound') {
+        res.status(404).send({ message: 'User not found' });
+      } else {
+        next(err);
+      }
+    });
+};
+
 module.exports.createUser = (req, res, next) => {
   const { name, avatar } = req.body;
 
@@ -44,7 +61,7 @@ module.exports.updateUser = (req, res, next) => {
   User.findByIdAndUpdate(
     userId,
     { name, avatar },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   )
     .orFail(() => new Error('NotFound'))
     .then((updatedUser) => res.send(updatedUser))
