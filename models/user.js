@@ -1,15 +1,41 @@
-const router = require('express').Router();
-const {
-  getUsers,
-  getUserById,
-  getCurrentUser,
-  updateUser,
-} = require('../controllers/users.js');
-const auth = require('../middlewares/auth.js');
+import mongoose from 'mongoose';
 
-router.get('/', getUsers);
-router.get('/me', auth, getCurrentUser);
-router.patch('/me', auth, updateUser);
-router.get('/:userId', getUserById);
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    minlength: 2,
+    maxlength: 30,
+  },
+  avatar: {
+    type: String,
+    required: true,
+    validate: {
+      validator(v) {
+        return /^(https?:\/\/)(www\.)?[\w\-._~:/?#[\]@!$&'()*+,;=]+#?$/.test(v);
+      },
+      message: 'Invalid URL for avatar',
+    },
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    validate: {
+      validator(v) {
+        return /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(v);
+      },
+      message: 'Invalid email address',
+    },
+  },
+  password: {
+    type: String,
+    required: true,
+    select: false,
+  },
+}, { versionKey: false, timestamps: true });
 
-module.exports = router;
+const User = mongoose.model('User', userSchema);
+
+export default User;

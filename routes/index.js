@@ -1,13 +1,15 @@
-const router = require('express').Router();
-const itemsRouter = require('./items.js');
-const usersRouter = require('./users.js');
+import express from 'express';
+import itemsRouter from './items.js';
+import usersRouter from './users.js';
+
+const router = express.Router();
 
 router.use('/items', itemsRouter);
 router.use('/users', usersRouter);
 
-// 404 middleware
+// 404 middleware (must be last)
 router.use((req, res) => {
   res.status(404).send({ message: 'Requested resource not found' });
 });
 
-module.exports = router;
+export default router;
