@@ -1,4 +1,3 @@
-// auth middleware
 import jwt from 'jsonwebtoken';
 
 const { JWT_SECRET = 'dev-secret' } = process.env;

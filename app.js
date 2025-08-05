@@ -1,9 +1,9 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import routes from './routes/index';
-import auth from './middlewares/auth';
-import { createUser, login } from './controllers/auth';
+import routes from './routes/index.js';
+import auth from './middlewares/auth.js';
+import { createUser, login } from './controllers/auth.js';
 
 const { PORT = 3001 } = process.env;
 

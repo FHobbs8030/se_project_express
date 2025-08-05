@@ -4,8 +4,8 @@ const {
   getUserById,
   getCurrentUser,
   updateUser,
-} = require('../controllers/users');
-const auth = require('../middlewares/auth');
+} = require('../controllers/users.js');
+const auth = require('../middlewares/auth.js');
 
 router.get('/', getUsers);
 router.get('/me', auth, getCurrentUser);

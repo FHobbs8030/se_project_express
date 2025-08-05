@@ -6,9 +6,9 @@ const {
   likeItem,
   unlikeItem,
   getItem,
-} = require('../controllers/clothes');
-const auth = require('../middlewares/auth');
-const validateObjectId = require('../middlewares/validateObjectId');
+} = require('../controllers/clothes.js');
+const auth = require('../middlewares/auth.js');
+const validateObjectId = require('../middlewares/validateObjectId.js');
 
 router.get('/', getItems);
 router.get('/:id', validateObjectId('id'), getItem);

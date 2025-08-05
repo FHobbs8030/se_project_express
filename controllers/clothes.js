@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
-const ClothingItem = require('../models/clothingItem');
+const ClothingItem = require('../models/clothingItem.js');
 const {
   STATUS_OK,
   STATUS_CREATED,
   STATUS_BAD_REQUEST,
   STATUS_INTERNAL_SERVER_ERROR,
   STATUS_NOT_FOUND,
-} = require('../utils/constants');
+} = require('../utils/constants.js');
 
 module.exports.getItems = (req, res) => ClothingItem.find({})
   .then((items) => res.status(STATUS_OK).send(items))
