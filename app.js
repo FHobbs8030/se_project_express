@@ -1,3 +1,4 @@
+import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
@@ -5,11 +6,15 @@ import routes from './routes/index.js';
 import auth from './middlewares/auth.js';
 import { createUser, login } from './controllers/auth.js';
 
-const { PORT = 3001 } = process.env;
+dotenv.config();
+
+const { PORT = 3001, MONGO_URL } = process.env;
 
 const app = express();
 
-mongoose.connect('mongodb://127.0.0.1:27017/wtwr_db');
+mongoose.connect(MONGO_URL || 'mongodb://127.0.0.1:27017/wtwr_db')
+  .then(() => console.log('✅ MongoDB connected'))
+  .catch((err) => console.error('❌ MongoDB connection error:', err));
 
 app.use(cors());
 app.use(express.json());
