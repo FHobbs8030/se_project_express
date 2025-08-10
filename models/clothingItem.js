@@ -17,10 +17,11 @@ const clothingItemSchema = new mongoose.Schema({
     type: String,
     required: true,
     validate: {
-      validator: (url) => validator.isURL(url),
+      validator: (v) => validator.isURL(v, { require_protocol: true }),
       message: 'Invalid URL format',
     },
   },
+
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
