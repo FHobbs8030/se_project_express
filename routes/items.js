@@ -1,20 +1,20 @@
 import express from 'express';
 import { celebrate, Joi } from 'celebrate';
 import {
-  getItems,
   createItem,
   deleteItem,
   likeItem,
   unlikeItem,
-  getItem,
 } from '../controllers/clothes.js';
 import auth from '../middlewares/auth.js';
 import validateObjectId from '../middlewares/validateObjectId.js';
 
 const router = express.Router();
 
-router.get('/', getItems);
-router.get('/:id', validateObjectId('id'), getItem);
+// NOTE: Public GET routes are defined in app.js to remain auth-free.
+// Removed:
+// router.get('/', getItems);
+// router.get('/:id', validateObjectId('id'), getItem);
 
 router.post(
   '/',
