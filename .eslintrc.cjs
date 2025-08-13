@@ -5,11 +5,15 @@ module.exports = {
     node: true,
     es2021: true,
   },
-  extends: ['airbnb-base'],
+
+  // Per review: use eslint:recommended, airbnb-base, prettier
+  extends: ['eslint:recommended', 'airbnb-base', 'prettier'],
+
   parserOptions: {
     ecmaVersion: 12,
     sourceType: 'module',
   },
+
   settings: {
     'import/resolver': {
       node: {
@@ -18,6 +22,7 @@ module.exports = {
       },
     },
   },
+
   rules: {
     'no-console': 'off',
     'no-underscore-dangle': ['error', { allow: ['_id'] }],
