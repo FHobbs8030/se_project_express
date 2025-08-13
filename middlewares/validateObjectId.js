@@ -1,8 +1,10 @@
 import mongoose from 'mongoose';
+import { STATUS_BAD_REQUEST } from '../utils/constants.js';
 
 const validateObjectId = (paramName) => (req, res, next) => {
-  if (!mongoose.Types.ObjectId.isValid(req.params[paramName])) {
-    return res.status(400).send({ message: `Invalid ${paramName}` });
+  const value = req.params[paramName];
+  if (!mongoose.Types.ObjectId.isValid(value)) {
+    return res.status(STATUS_BAD_REQUEST).send({ message: `Invalid ${paramName}` });
   }
   return next();
 };
