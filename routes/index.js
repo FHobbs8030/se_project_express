@@ -1,6 +1,7 @@
 import express from 'express';
 import itemsRouter from './items.js';
 import usersRouter from './users.js';
+import { STATUS_NOT_FOUND } from '../utils/constants.js';
 
 const router = express.Router();
 
@@ -9,7 +10,7 @@ router.use('/users', usersRouter);
 
 // 404 middleware (must be last)
 router.use((req, res) => {
-  res.status(404).send({ message: 'Requested resource not found' });
+  res.status(STATUS_NOT_FOUND).send({ message: 'Requested resource not found' });
 });
 
 export default router;
