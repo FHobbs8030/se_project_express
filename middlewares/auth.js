@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { STATUS_UNAUTHORIZED } from '../utils/constants.js';
 
 const { JWT_SECRET = 'dev-secret' } = process.env;
 
@@ -6,19 +7,22 @@ const auth = (req, res, next) => {
   const { authorization } = req.headers;
 
   if (!authorization || !authorization.startsWith('Bearer ')) {
-    return res.status(401).send({ message: 'Authorization required' });
+    return res
+      .status(STATUS_UNAUTHORIZED)
+      .send({ message: 'Authorization required' });
   }
 
-  const token = authorization.replace('Bearer ', '');
+  const token = authorization.slice(7); // remove "Bearer "
 
-  let payload;
   try {
-    payload = jwt.verify(token, JWT_SECRET);
-  } catch (err) {
-    return res.status(401).send({ message: 'Invalid token' });
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.user = payload;
+  } catch (_err) {
+    return res
+      .status(STATUS_UNAUTHORIZED)
+      .send({ message: 'Invalid token' });
   }
 
-  req.user = payload;
   return next();
 };
 
