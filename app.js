@@ -8,10 +8,14 @@ import routes from './routes/index.js';
 import auth from './middlewares/auth.js';
 import { createUser, login } from './controllers/auth.js';
 import { getItems, getItem } from './controllers/clothes.js';
+import {
+  STATUS_NOT_FOUND,
+  STATUS_INTERNAL_SERVER_ERROR,
+} from './utils/constants.js';
 
 dotenv.config();
 
-// #4: Fail fast if critical envs are missing
+// Fail fast if critical envs are missing
 ['MONGO_URL', 'JWT_SECRET'].forEach((key) => {
   if (!process.env[key]) {
     console.error(`❌ Missing required env: ${key}`);
@@ -31,7 +35,7 @@ mongoose
     process.exit(1);
   });
 
-// #2: Drive CORS from env (comma-separated list)
+// Drive CORS from env (comma-separated list)
 const defaultOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -56,7 +60,7 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
 
-// #3: Dev-only helper (optional): only fake a user for PUBLIC GETs to /items
+// Dev-only helper: only fake a user for PUBLIC GETs to /items
 if (process.env.NODE_ENV !== 'production') {
   app.use((req, _res, next) => {
     const isPublicItemsGet =
@@ -84,15 +88,18 @@ app.use(routes);
 app.use(errors());
 
 app.use((req, res) => {
-  res.status(404).send({ message: 'Requested resource not found' });
+  res.status(STATUS_NOT_FOUND).send({ message: 'Requested resource not found' });
 });
 
 // eslint-disable-next-line consistent-return
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
-  const { statusCode = 500, message } = err;
+  const { statusCode = STATUS_INTERNAL_SERVER_ERROR, message } = err;
   res.status(statusCode).send({
-    message: statusCode === 500 ? 'An internal server error occurred' : message,
+    message:
+      statusCode === STATUS_INTERNAL_SERVER_ERROR
+        ? 'An internal server error occurred'
+        : message,
   });
 });
 
