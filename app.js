@@ -79,9 +79,7 @@ app.use(routes);
 
 app.use(errors());
 
-app.use((req, res) => {
-  return res.status(STATUS_NOT_FOUND).send({ message: 'Requested resource not found' });
-});
+app.use((req, res) => res.status(STATUS_NOT_FOUND).send({ message: 'Requested resource not found' }));
 
 app.use((err, req, res, next) => {
   if (res.headersSent) return next(err);
