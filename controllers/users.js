@@ -1,4 +1,3 @@
-// controllers/users.js
 import User from '../models/user.js';
 import {
   STATUS_OK,
@@ -10,7 +9,8 @@ import {
 
 export const getUsers = async (_req, res) => {
   try {
-    const users = await User.find({});
+    // Exclude password and email from list responses
+    const users = await User.find({}).select('-password -email');
     return res.status(STATUS_OK).send(users);
   } catch (_err) {
     return res
@@ -22,7 +22,10 @@ export const getUsers = async (_req, res) => {
 export const getUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const user = await User.findById(userId).orFail(() => new Error('NotFound'));
+    // Exclude password and email from single-user response
+    const user = await User.findById(userId)
+      .select('-password -email')
+      .orFail(() => new Error('NotFound'));
     return res.status(STATUS_OK).send(user);
   } catch (err) {
     if (err.name === 'CastError') {
@@ -41,7 +44,11 @@ export const createUser = async (req, res) => {
   try {
     const { name, avatar } = req.body || {};
     const user = await User.create({ name, avatar });
-    return res.status(STATUS_CREATED).send(user);
+    // Return sanitized version (no email/password even if schema has them)
+    const safe = user.toObject();
+    delete safe.password;
+    delete safe.email;
+    return res.status(STATUS_CREATED).send(safe);
   } catch (err) {
     if (err.name === 'ValidationError') {
       return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid user data' });
