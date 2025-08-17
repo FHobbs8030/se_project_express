@@ -1,15 +1,11 @@
 import express from 'express';
-import {
-  getItems,
-  createItem,
-  deleteItem,
-  likeItem,
-  unlikeItem,
-} from '../controllers/clothes.js';
+import { createItem, deleteItem, likeItem, unlikeItem } from '../controllers/clothes.js';
 
 const router = express.Router();
 
-router.get('/', getItems);
+// Sprint-12: no auth middleware, no validation middleware
+// Hardcoded user _id is set in app.js
+
 router.post('/', createItem);
 router.delete('/:id', deleteItem);
 router.put('/:id/likes', likeItem);

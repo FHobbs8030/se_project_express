@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 
 import routes from './routes/index.js';
-import hardcodedUser from './middlewares/hardcodedUser.js';
+import { getItems } from './controllers/clothes.js';
 import {
   STATUS_NOT_FOUND,
   STATUS_INTERNAL_SERVER_ERROR,
@@ -12,7 +12,11 @@ import {
 
 dotenv.config();
 
-const { PORT = 3001, MONGO_URL = 'mongodb://127.0.0.1:27017/wtwr_db' } = process.env;
+const {
+  PORT = 3001,
+  MONGO_URL = 'mongodb://127.0.0.1:27017/wtwr_db',
+  CORS_ORIGINS,
+} = process.env;
 
 const app = express();
 
@@ -24,28 +28,44 @@ mongoose
     process.exit(1);
   });
 
+const defaultOrigins = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+];
+const allowedOrigins = (CORS_ORIGINS || defaultOrigins.join(','))
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 const corsOptions = {
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept'],
 };
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
-
 app.use(express.json());
-app.use(hardcodedUser);
-app.use(routes);
 
-app.use((req, res) => {
-  res.status(STATUS_NOT_FOUND).send({ message: 'Requested resource not found' });
+app.use((req, _res, next) => {
+  req.user = { _id: '5d8b8592978f8bd833ca8133' };
+  next();
 });
 
+app.get('/items', getItems);
+
+app.use(routes);
+
+app.use((req, res) =>
+  res.status(STATUS_NOT_FOUND).send({ message: 'Requested resource not found' }),
+);
+
 app.use((err, _req, res, next) => {
-  if (res.headersSent) {
-    return next(err);
-  }
+  if (res.headersSent) return next(err);
   const { statusCode = STATUS_INTERNAL_SERVER_ERROR, message } = err;
   return res.status(statusCode).send({
     message:
