@@ -17,18 +17,18 @@ const clothingItemSchema = new mongoose.Schema({
     type: String,
     required: true,
     validate: {
-      validator: (v) => validator.isURL(v, { require_protocol: true }),
-      message: 'Invalid URL format',
+      validator: (v) => validator.isURL(v, { protocols: ['http', 'https'], require_protocol: true }),
+      message: 'Invalid image URL',
     },
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true, // ✅ required
+    required: true,
   },
   likes: {
     type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    default: [], // ✅ default on the field (not per-array element)
+    default: [],
   },
   createdAt: {
     type: Date,

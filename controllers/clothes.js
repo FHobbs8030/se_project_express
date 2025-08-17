@@ -3,11 +3,12 @@ import {
   STATUS_OK,
   STATUS_CREATED,
   STATUS_BAD_REQUEST,
-  STATUS_INTERNAL_SERVER_ERROR,
+  STATUS_FORBIDDEN,
   STATUS_NOT_FOUND,
+  STATUS_INTERNAL_SERVER_ERROR,
 } from '../utils/constants.js';
 
-// Get all items
+// GET /items
 export const getItems = async (_req, res) => {
   try {
     const items = await ClothingItem.find({});
@@ -15,99 +16,95 @@ export const getItems = async (_req, res) => {
   } catch (_err) {
     return res
       .status(STATUS_INTERNAL_SERVER_ERROR)
-      .send({ message: 'Server error retrieving items' });
+      .send({ message: 'Failed to fetch items' });
   }
 };
 
-// Create new item
-export const createItem = (req, res) => {
-  const { name, weather, imageUrl } = req.body;
-  const owner = req.user._id;
-
-  return ClothingItem.create({ name, weather, imageUrl, owner })
-    .then((item) => res.status(STATUS_CREATED).send(item))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res
-          .status(STATUS_BAD_REQUEST)
-          .send({ message: 'Invalid item data' });
-      }
-      return res
-        .status(STATUS_INTERNAL_SERVER_ERROR)
-        .send({ message: 'Server error creating item' });
-    });
+// POST /items
+export const createItem = async (req, res) => {
+  try {
+    const { name, weather, imageUrl } = req.body;
+    const owner = req.user?._id; // from hardcodedUser middleware
+    const newItem = await ClothingItem.create({ name, weather, imageUrl, owner });
+    return res.status(STATUS_CREATED).send(newItem);
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid item data' });
+    }
+    return res
+      .status(STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: 'Failed to create item' });
+  }
 };
 
-// Delete item by ID
-export const deleteItem = (req, res) => {
-  const { id } = req.params;
-
-  return ClothingItem.findByIdAndDelete(id)
-    .then((item) =>
-      !item
-        ? res.status(STATUS_NOT_FOUND).send({ message: 'Item not found' })
-        : res.status(STATUS_OK).send({ message: 'Item deleted successfully' }),
-    )
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return res
-          .status(STATUS_BAD_REQUEST)
-          .send({ message: 'Invalid item ID' });
-      }
-      return res
-        .status(STATUS_INTERNAL_SERVER_ERROR)
-        .send({ message: 'Server error deleting item' });
-    });
+// DELETE /items/:id
+export const deleteItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const item = await ClothingItem.findById(id);
+    if (!item) {
+      return res.status(STATUS_NOT_FOUND).send({ message: 'Item not found' });
+    }
+    // Optional owner check (fine for Sprint 12 to include, but no real auth):
+    if (String(item.owner) !== String(req.user?._id)) {
+      return res.status(STATUS_FORBIDDEN).send({ message: 'You can only delete your own items' });
+    }
+    await item.deleteOne();
+    return res.status(STATUS_OK).send({ message: 'Item deleted' });
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid item id' });
+    }
+    return res
+      .status(STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: 'Failed to delete item' });
+  }
 };
 
-// Like an item
-export const likeItem = (req, res) => {
-  const { id } = req.params;
-
-  return ClothingItem.findByIdAndUpdate(
-    id,
-    { $addToSet: { likes: req.user._id } },
-    { new: true, runValidators: true },
-  )
-    .then((item) =>
-      !item
-        ? res.status(STATUS_NOT_FOUND).send({ message: 'Item not found' })
-        : res.status(STATUS_OK).send(item),
-    )
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return res
-          .status(STATUS_BAD_REQUEST)
-          .send({ message: 'Invalid item ID' });
-      }
-      return res
-        .status(STATUS_INTERNAL_SERVER_ERROR)
-        .send({ message: 'Server error liking item' });
-    });
+// PUT /items/:id/likes
+export const likeItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?._id;
+    const updated = await ClothingItem.findByIdAndUpdate(
+      id,
+      { $addToSet: { likes: userId } },
+      { new: true }
+    );
+    if (!updated) {
+      return res.status(STATUS_NOT_FOUND).send({ message: 'Item not found' });
+    }
+    return res.status(STATUS_OK).send(updated);
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid item id' });
+    }
+    return res
+      .status(STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: 'Failed to like item' });
+  }
 };
 
-// Unlike an item
-export const unlikeItem = (req, res) => {
-  const { id } = req.params;
-
-  return ClothingItem.findByIdAndUpdate(
-    id,
-    { $pull: { likes: req.user._id } },
-    { new: true, runValidators: true },
-  )
-    .then((item) =>
-      !item
-        ? res.status(STATUS_NOT_FOUND).send({ message: 'Item not found' })
-        : res.status(STATUS_OK).send(item),
-    )
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        return res
-          .status(STATUS_BAD_REQUEST)
-          .send({ message: 'Invalid item ID' });
-      }
-      return res
-        .status(STATUS_INTERNAL_SERVER_ERROR)
-        .send({ message: 'Server error unliking item' });
-    });
+// DELETE /items/:id/likes
+export const unlikeItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?._id;
+    const updated = await ClothingItem.findByIdAndUpdate(
+      id,
+      { $pull: { likes: userId } },
+      { new: true }
+    );
+    if (!updated) {
+      return res.status(STATUS_NOT_FOUND).send({ message: 'Item not found' });
+    }
+    return res.status(STATUS_OK).send(updated);
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid item id' });
+    }
+    return res
+      .status(STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: 'Failed to unlike item' });
+  }
 };

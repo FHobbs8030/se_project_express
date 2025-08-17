@@ -1,36 +1,39 @@
 import express from 'express';
-import { celebrate, Joi } from 'celebrate';
+import { celebrate, Joi, Segments } from 'celebrate';
 import {
+  getItems,
   createItem,
   deleteItem,
   likeItem,
   unlikeItem,
 } from '../controllers/clothes.js';
-import auth from '../middlewares/auth.js';
 import validateObjectId from '../middlewares/validateObjectId.js';
 
 const router = express.Router();
 
-// NOTE: Public GET routes are defined in app.js to remain auth-free.
-// Removed:
-// router.get('/', getItems);
-// router.get('/:id', validateObjectId('id'), getItem);
+// GET /items (public in Sprint 12)
+router.get('/', getItems);
 
+// POST /items
 router.post(
   '/',
-  auth,
   celebrate({
-    body: Joi.object().keys({
-      name: Joi.string().required(),
-      weather: Joi.string().required(),
+    [Segments.BODY]: Joi.object().keys({
+      name: Joi.string().min(2).max(30).required(),
+      weather: Joi.string().valid('hot', 'warm', 'cold').required(),
       imageUrl: Joi.string().uri().required(),
     }),
   }),
   createItem,
 );
 
-router.delete('/:id', auth, validateObjectId('id'), deleteItem);
-router.put('/:id/likes', auth, validateObjectId('id'), likeItem);
-router.delete('/:id/likes', auth, validateObjectId('id'), unlikeItem);
+// DELETE /items/:id
+router.delete('/:id', validateObjectId('id'), deleteItem);
+
+// PUT /items/:id/likes
+router.put('/:id/likes', validateObjectId('id'), likeItem);
+
+// DELETE /items/:id/likes
+router.delete('/:id/likes', validateObjectId('id'), unlikeItem);
 
 export default router;
