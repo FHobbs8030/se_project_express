@@ -1,13 +1,11 @@
-export default function hardcodedUser(req, res, next) {
-  Object.defineProperty(req, 'user', {
-    value: { _id: '000000000000000000000001' },
-    writable: true,
-    enumerable: true,
-    configurable: true,
-  });
-  if (typeof res === 'undefined') {
-    return next();
+export default function hardcodedUser(req, _res, next) {
+  if (!req.user) {
+    Object.defineProperty(req, 'user', {
+      value: { _id: '000000000000000000000001' },
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
   }
-  return next();
+  next();
 }
-
