@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+// controllers/users.js
 import User from '../models/user.js';
 import {
   STATUS_OK,
@@ -10,26 +10,30 @@ import {
 
 export const getUsers = async (_req, res) => {
   try {
-    const users = await User.find({}).select('name avatar createdAt');
+    const users = await User.find({});
     return res.status(STATUS_OK).send(users);
-  } catch {
-    return res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Failed to fetch users' });
+  } catch (_err) {
+    return res
+      .status(STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: 'Server error retrieving users' });
   }
 };
 
 export const getUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid user id' });
+    const user = await User.findById(userId).orFail(() => new Error('NotFound'));
+    return res.status(STATUS_OK).send(user);
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid user ID' });
     }
-    const user = await User.findById(userId).select('name avatar createdAt');
-    if (!user) {
+    if (err.message === 'NotFound') {
       return res.status(STATUS_NOT_FOUND).send({ message: 'User not found' });
     }
-    return res.status(STATUS_OK).send(user);
-  } catch {
-    return res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Failed to fetch user' });
+    return res
+      .status(STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: 'Server error retrieving user by ID' });
   }
 };
 
@@ -42,6 +46,8 @@ export const createUser = async (req, res) => {
     if (err.name === 'ValidationError') {
       return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid user data' });
     }
-    return res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Failed to create user' });
+    return res
+      .status(STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: 'Server error creating user' });
   }
 };
