@@ -1,4 +1,3 @@
-// models/user.js
 import mongoose from 'mongoose';
 import validator from 'validator';
 
@@ -19,7 +18,7 @@ const userSchema = new mongoose.Schema(
         message: 'Invalid avatar URL',
       },
     },
-    // Optional for this sprint; kept for seeded data compatibility
+    
     email: {
       type: String,
       validate: {
@@ -35,17 +34,14 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-    versionKey: false, // don’t include __v going forward
+    versionKey: false,
     toJSON: {
       transform(_doc, ret) {
-        // return a sanitized copy (no param reassign, eslint-safe)
         const safe = { ...ret };
 
-        // strip sensitive fields
         delete safe.password;
         delete safe.email;
 
-        // strip legacy version key without violating lint rules
         const VKEY = '__v';
         if (Object.prototype.hasOwnProperty.call(safe, VKEY)) {
           delete safe[VKEY];
