@@ -2,7 +2,6 @@ import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-import { errors } from 'celebrate';
 
 import routes from './routes/index.js';
 import hardcodedUser from './middlewares/hardcodedUser.js';
@@ -38,10 +37,11 @@ app.options('*', cors(corsOptions));
 app.use(express.json());
 app.use(hardcodedUser);
 app.use(routes);
-app.use(errors());
+
 app.use((req, res) => {
   res.status(STATUS_NOT_FOUND).send({ message: 'Requested resource not found' });
 });
+
 app.use((err, _req, res, next) => {
   if (res.headersSent) {
     return next(err);
@@ -54,6 +54,7 @@ app.use((err, _req, res, next) => {
         : message,
   });
 });
+
 app.listen(PORT, () => {
   console.log(`WTWR API is running on http://localhost:${PORT}`);
 });

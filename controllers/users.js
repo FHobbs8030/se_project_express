@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import User from '../models/user.js';
 import {
   STATUS_OK,
@@ -19,22 +20,22 @@ export const getUsers = async (_req, res) => {
 export const getUser = async (req, res) => {
   try {
     const { userId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid user id' });
+    }
     const user = await User.findById(userId).select('name avatar createdAt');
     if (!user) {
       return res.status(STATUS_NOT_FOUND).send({ message: 'User not found' });
     }
     return res.status(STATUS_OK).send(user);
-  } catch (err) {
-    if (err.name === 'CastError') {
-      return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid user id' });
-    }
+  } catch {
     return res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Failed to fetch user' });
   }
 };
 
 export const createUser = async (req, res) => {
   try {
-    const { name, avatar } = req.body;
+    const { name, avatar } = req.body || {};
     const user = await User.create({ name, avatar });
     return res.status(STATUS_CREATED).send(user);
   } catch (err) {
