@@ -5,10 +5,7 @@ import cors from 'cors';
 
 import routes from './routes/index.js';
 import { getItems } from './controllers/clothes.js';
-import {
-  STATUS_NOT_FOUND,
-  STATUS_INTERNAL_SERVER_ERROR,
-} from './utils/constants.js';
+import { STATUS_NOT_FOUND } from './utils/constants.js';
 
 dotenv.config();
 
@@ -34,6 +31,7 @@ const defaultOrigins = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
 ];
+
 const allowedOrigins = (CORS_ORIGINS || defaultOrigins.join(','))
   .split(',')
   .map((s) => s.trim())
@@ -51,29 +49,22 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
 
+// Temporary user for Sprint 12 (no auth yet)
 app.use((req, _res, next) => {
   req.user = { _id: '5d8b8592978f8bd833ca8133' };
   next();
 });
 
+// Direct passthrough for React’s GET /items
 app.get('/items', getItems);
 
+// Routers
 app.use(routes);
 
+// 404 fallback
 app.use((req, res) =>
   res.status(STATUS_NOT_FOUND).send({ message: 'Requested resource not found' }),
 );
-
-app.use((err, _req, res, next) => {
-  if (res.headersSent) return next(err);
-  const { statusCode = STATUS_INTERNAL_SERVER_ERROR, message } = err;
-  return res.status(statusCode).send({
-    message:
-      statusCode === STATUS_INTERNAL_SERVER_ERROR
-        ? 'An internal server error occurred'
-        : message,
-  });
-});
 
 app.listen(PORT, () => {
   console.log(`WTWR API is running on http://localhost:${PORT}`);
