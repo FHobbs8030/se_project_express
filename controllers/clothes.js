@@ -24,7 +24,7 @@ export const getItems = async (_req, res) => {
 export const createItem = async (req, res) => {
   try {
     const { name, weather, imageUrl } = req.body;
-    const owner = req.user?._id; // from hardcodedUser middleware
+    // eslint-disable-next-line no-undef
     const newItem = await ClothingItem.create({ name, weather, imageUrl, owner });
     return res.status(STATUS_CREATED).send(newItem);
   } catch (err) {
