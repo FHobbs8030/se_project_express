@@ -20,11 +20,31 @@ export const getItems = async (_req, res) => {
   }
 };
 
+// GET /items/:id
+export const getItem = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const item = await ClothingItem.findById(id);
+    if (!item) return res.status(STATUS_NOT_FOUND).send({ message: 'Item not found' });
+    return res.status(STATUS_OK).send(item);
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid item id' });
+    }
+    return res
+      .status(STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: 'Failed to fetch item' });
+  }
+};
+
 // POST /items
 export const createItem = async (req, res) => {
   try {
     const { name, weather, imageUrl } = req.body;
-    // eslint-disable-next-line no-undef
+
+    // Owner comes from req.user set by middleware in app.js (Sprint 12)
+    const owner = req.user?._id;
+
     const newItem = await ClothingItem.create({ name, weather, imageUrl, owner });
     return res.status(STATUS_CREATED).send(newItem);
   } catch (err) {
@@ -45,10 +65,14 @@ export const deleteItem = async (req, res) => {
     if (!item) {
       return res.status(STATUS_NOT_FOUND).send({ message: 'Item not found' });
     }
-    // Optional owner check (fine for Sprint 12 to include, but no real auth):
+
+    // Owner check (allowed in Sprint 12 even without full auth)
     if (String(item.owner) !== String(req.user?._id)) {
-      return res.status(STATUS_FORBIDDEN).send({ message: 'You can only delete your own items' });
+      return res
+        .status(STATUS_FORBIDDEN)
+        .send({ message: 'You can only delete your own items' });
     }
+
     await item.deleteOne();
     return res.status(STATUS_OK).send({ message: 'Item deleted' });
   } catch (err) {
@@ -69,7 +93,7 @@ export const likeItem = async (req, res) => {
     const updated = await ClothingItem.findByIdAndUpdate(
       id,
       { $addToSet: { likes: userId } },
-      { new: true }
+      { new: true },
     );
     if (!updated) {
       return res.status(STATUS_NOT_FOUND).send({ message: 'Item not found' });
@@ -93,7 +117,7 @@ export const unlikeItem = async (req, res) => {
     const updated = await ClothingItem.findByIdAndUpdate(
       id,
       { $pull: { likes: userId } },
-      { new: true }
+      { new: true },
     );
     if (!updated) {
       return res.status(STATUS_NOT_FOUND).send({ message: 'Item not found' });
