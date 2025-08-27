@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
-
+import auth from './middlewares/auth.js';
 import routes from './routes/index.js';
 import { getItems } from './controllers/clothes.js';
 import { STATUS_NOT_FOUND } from './utils/constants.js';
@@ -49,19 +49,18 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
 
-// Temporary user for Sprint 12 (no auth yet)
 app.use((req, _res, next) => {
   req.user = { _id: '5d8b8592978f8bd833ca8133' };
   next();
 });
 
-// Direct passthrough for React’s GET /items
 app.get('/items', getItems);
 
-// Routers
+app.use(auth);
+
+
 app.use(routes);
 
-// 404 fallback
 app.use((req, res) =>
   res.status(STATUS_NOT_FOUND).send({ message: 'Requested resource not found' }),
 );
