@@ -1,10 +1,11 @@
-import express from 'express';
-import { getUsers, getUser, createUser } from '../controllers/users.js';
+import { Router } from 'express';
+import { getCurrentUser, updateProfile } from '../controllers/users.js';
 
-const router = express.Router();
+const router = Router();
 
-router.get('/', getUsers);
-router.get('/:userId', getUser);
-router.post('/', createUser);
+// PROTECTED (requires auth)
+router.get('/me', getCurrentUser);
+router.patch('/me', updateProfile);
 
 export default router;
+

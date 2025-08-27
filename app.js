@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import auth from './middlewares/auth.js';
 import routes from './routes/index.js';
+import authRouter from './routes/auth.js';
 import { getItems } from './controllers/clothes.js';
 import { STATUS_NOT_FOUND } from './utils/constants.js';
 
@@ -11,7 +12,7 @@ dotenv.config();
 
 const {
   PORT = 3001,
-  MONGO_URL = 'mongodb://127.0.0.1:27017/wtwr_db',
+  MONGO_URL = 'mongodb://localhost:27017/wtwr_db',
   CORS_ORIGINS,
 } = process.env;
 
@@ -49,16 +50,14 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
 
-app.use((req, _res, next) => {
-  req.user = { _id: '5d8b8592978f8bd833ca8133' };
-  next();
-});
+// PUBLIC
+app.use(authRouter);          // /signin, /signup
+app.get('/items', getItems);  // keep GET /items public
 
-app.get('/items', getItems);
-
+// AUTH GUARD
 app.use(auth);
 
-
+// PROTECTED
 app.use(routes);
 
 app.use((req, res) =>

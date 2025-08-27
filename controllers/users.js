@@ -1,60 +1,47 @@
 import User from '../models/user.js';
 import {
-  STATUS_OK,
-  STATUS_CREATED,
   STATUS_BAD_REQUEST,
   STATUS_NOT_FOUND,
   STATUS_INTERNAL_SERVER_ERROR,
+  STATUS_OK,
 } from '../utils/constants.js';
 
-export const getUsers = async (_req, res) => {
+// GET /users/me
+export const getCurrentUser = async (req, res) => {
   try {
-    // Exclude password and email from list responses
-    const users = await User.find({}).select('-password -email');
-    return res.status(STATUS_OK).send(users);
-  } catch (_err) {
-    return res
-      .status(STATUS_INTERNAL_SERVER_ERROR)
-      .send({ message: 'Server error retrieving users' });
-  }
-};
-
-export const getUser = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    // Exclude password and email from single-user response
-    const user = await User.findById(userId)
-      .select('-password -email')
-      .orFail(() => new Error('NotFound'));
-    return res.status(STATUS_OK).send(user);
-  } catch (err) {
-    if (err.name === 'CastError') {
-      return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid user ID' });
-    }
-    if (err.message === 'NotFound') {
+    const user = await User.findById(req.user._id);
+    if (!user) {
       return res.status(STATUS_NOT_FOUND).send({ message: 'User not found' });
     }
-    return res
-      .status(STATUS_INTERNAL_SERVER_ERROR)
-      .send({ message: 'Server error retrieving user by ID' });
+    return res.status(STATUS_OK).send(user);
+  } catch (err) {
+    if (err?.name === 'CastError') {
+      return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid user id' });
+    }
+    return res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'An error has occurred on the server.' });
   }
 };
 
-export const createUser = async (req, res) => {
+// PATCH /users/me
+export const updateProfile = async (req, res) => {
   try {
-    const { name, avatar } = req.body || {};
-    const user = await User.create({ name, avatar });
-    // Return sanitized version (no email/password even if schema has them)
-    const safe = user.toObject();
-    delete safe.password;
-    delete safe.email;
-    return res.status(STATUS_CREATED).send(safe);
-  } catch (err) {
-    if (err.name === 'ValidationError') {
-      return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid user data' });
+    const { name, avatar } = req.body;
+
+    const updated = await User.findByIdAndUpdate(
+      req.user._id,
+      { name, avatar },
+      { new: true, runValidators: true },
+    );
+
+    if (!updated) {
+      return res.status(STATUS_NOT_FOUND).send({ message: 'User not found' });
     }
-    return res
-      .status(STATUS_INTERNAL_SERVER_ERROR)
-      .send({ message: 'Server error creating user' });
+
+    return res.status(STATUS_OK).send(updated);
+  } catch (err) {
+    if (err?.name === 'ValidationError') {
+      return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid profile data' });
+    }
+    return res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'An error has occurred on the server.' });
   }
 };
