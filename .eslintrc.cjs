@@ -1,49 +1,15 @@
-const path = require('path');
-
 module.exports = {
-  env: {
-    node: true,
-    es2021: true,
-  },
-
-  // Per review: use eslint:recommended, airbnb-base, prettier
-  extends: ['eslint:recommended', 'airbnb-base', 'prettier'],
-
-  parserOptions: {
-    ecmaVersion: 12,
-    sourceType: 'module',
-  },
-
-  settings: {
-    'import/resolver': {
-      node: {
-        extensions: ['.js', '.json'],
-        paths: [path.resolve(__dirname)],
-      },
-    },
-  },
-
+  extends: ['airbnb-base'],
+  env: { node: true, es2021: true },
+  parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
   rules: {
-    'no-console': 'off',
     'no-underscore-dangle': ['error', { allow: ['_id'] }],
-    'import/no-extraneous-dependencies': [
-      'error',
-      {
-        devDependencies: false,
-        optionalDependencies: false,
-        peerDependencies: false,
-        packageDir: [__dirname],
-      },
-    ],
-    'import/extensions': [
-      'error',
-      'ignorePackages',
-      {
-        js: 'always',
-        json: 'always',
-        mjs: 'always',
-        jsx: 'always',
-      },
-    ],
+    'import/extensions': ['error', 'ignorePackages', { js: 'always', mjs: 'always' }],
+    'object-curly-newline': 'off',
+    'implicit-arrow-linebreak': 'off',
+    'function-paren-newline': 'off',
+
+    // ← turn off console complaints
+    'no-console': 'off',
   },
 };

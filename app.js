@@ -50,19 +50,16 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
 
-// PUBLIC
-app.use(authRouter);          // /signin, /signup
-app.get('/items', getItems);  // keep GET /items public
+app.use(authRouter);
+app.get('/items', getItems);
 
-// AUTH GUARD
 app.use(auth);
 
-// PROTECTED
 app.use(routes);
 
-app.use((req, res) =>
-  res.status(STATUS_NOT_FOUND).send({ message: 'Requested resource not found' }),
-);
+app.use((req, res) => {
+  res.status(STATUS_NOT_FOUND).send({ message: 'Requested resource not found' });
+});
 
 app.listen(PORT, () => {
   console.log(`WTWR API is running on http://localhost:${PORT}`);
