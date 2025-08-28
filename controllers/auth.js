@@ -25,24 +25,21 @@ export const createUser = async (req, res) => {
       name,
       avatar,
       email,
-      password: hash, // schema should have select:false
+      password: hash, // schema has select:false
     });
 
-    // Send safe payload (never include password)
     const { _id } = user;
-    return res.status(STATUS_CREATED).send({
-      _id, name, avatar, email,
-    });
+    return res.status(STATUS_CREATED).send({ _id, name, avatar, email });
   } catch (err) {
-    // Duplicate email
     if (err?.code === 11000) {
       return res.status(STATUS_CONFLICT).send({ message: 'Email already exists' });
     }
-    // Mongoose validation error
     if (err?.name === 'ValidationError') {
       return res.status(STATUS_BAD_REQUEST).send({ message: 'Invalid user data' });
     }
-    return res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'An error has occurred on the server.' });
+    return res
+      .status(STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: 'An error has occurred on the server.' });
   }
 };
 
@@ -54,7 +51,6 @@ export const login = async (req, res) => {
       return res.status(STATUS_BAD_REQUEST).send({ message: 'Email and password are required' });
     }
 
-    // password field has select:false; explicitly include it
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
       return res.status(STATUS_UNAUTHORIZED).send({ message: 'Incorrect email or password' });
@@ -65,14 +61,11 @@ export const login = async (req, res) => {
       return res.status(STATUS_UNAUTHORIZED).send({ message: 'Incorrect email or password' });
     }
 
-    const token = jwt.sign(
-      { _id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '7d' }, 
-    );
-
+    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     return res.status(STATUS_OK).send({ token });
   } catch (_err) {
-    return res.status(STATUS_INTERNAL_SERVER_ERROR).send({ message: 'An error has occurred on the server.' });
+    return res
+      .status(STATUS_INTERNAL_SERVER_ERROR)
+      .send({ message: 'An error has occurred on the server.' });
   }
 };

@@ -18,39 +18,22 @@ const userSchema = new mongoose.Schema(
         message: 'Invalid avatar URL',
       },
     },
-    
     email: {
       type: String,
+      required: true,
+      unique: true,
       validate: {
-        validator: (v) => !v || validator.isEmail(v),
+        validator: (v) => validator.isEmail(v),
         message: 'Invalid email',
       },
     },
-    // Hidden by default in queries
     password: {
       type: String,
+      required: true,
       select: false,
     },
   },
-  {
-    timestamps: true,
-    versionKey: false,
-    toJSON: {
-      transform(_doc, ret) {
-        const safe = { ...ret };
-
-        delete safe.password;
-        delete safe.email;
-
-        const VKEY = '__v';
-        if (Object.prototype.hasOwnProperty.call(safe, VKEY)) {
-          delete safe[VKEY];
-        }
-
-        return safe;
-      },
-    },
-  },
+  { timestamps: true, versionKey: false },
 );
 
-export default mongoose.model('User', userSchema);
+export default mongoose.model('user', userSchema);
