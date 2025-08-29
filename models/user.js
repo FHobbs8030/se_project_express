@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true,
+      unique: true, // <-- keep this
       lowercase: true,
       validate: {
         validator: validator.isEmail,
@@ -42,7 +42,6 @@ const userSchema = new mongoose.Schema(
   { versionKey: false },
 );
 
-// Ensure uniqueness at DB level too
-userSchema.index({ email: 1 }, { unique: true });
+// ❌ remove any extra: userSchema.index({ email: 1 }, { unique: true });
 
 export default mongoose.model('user', userSchema);

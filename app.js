@@ -1,68 +1,117 @@
+// app.js
 import dotenv from 'dotenv';
+
 import express from 'express';
-import mongoose from 'mongoose';
 import cors from 'cors';
+import mongoose from 'mongoose';
+
 import auth from './middlewares/auth.js';
-import routes from './routes/index.js';
-import authRouter from './routes/auth.js';
-import { getItems } from './controllers/clothes.js';
-import { STATUS_NOT_FOUND } from './utils/constants.js';
+import itemsRouter from './routes/items.js';
+import usersRouter from './routes/users.js';
+
+import { login, createUser } from './controllers/auth.js';
+import { getItems } from './controllers/items.js';
+
+import {
+  STATUS_BAD_REQUEST,
+  STATUS_UNAUTHORIZED,
+  STATUS_FORBIDDEN,
+  STATUS_NOT_FOUND,
+  STATUS_CONFLICT,
+  STATUS_INTERNAL_SERVER_ERROR,
+} from './utils/constants.js';
 
 dotenv.config();
 
 const {
   PORT = 3001,
   MONGO_URL = 'mongodb://localhost:27017/wtwr_db',
-  CORS_ORIGINS,
+  CORS_ORIGIN,
 } = process.env;
 
 const app = express();
 
+// ---------- DB ----------
 mongoose
   .connect(MONGO_URL)
   .then(() => console.log('✅ MongoDB connected'))
-  .catch((err) => {
-    console.error('❌ MongoDB connection error:', err);
+  .catch((e) => {
+    console.error('Mongo connection error:', e);
     process.exit(1);
   });
 
-const defaultOrigins = [
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
+// ---------- CORS ----------
+const allowList = (CORS_ORIGIN ? CORS_ORIGIN.split(',') : [
   'http://localhost:3000',
-  'http://127.0.0.1:3000',
-];
-
-const allowedOrigins = (CORS_ORIGINS || defaultOrigins.join(','))
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean);
+  'http://localhost:5173',
+  'http://localhost:5174',
+]).map((s) => s.trim());
 
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    if (!origin || allowList.includes(origin)) return callback(null, true);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+
+// ---------- Parsers ----------
+app.disable('x-powered-by');
 app.use(express.json());
 
-app.use(authRouter);
+// ---------- Public routes ----------
+app.get('/', (_req, res) => {
+  res.send({ service: 'WTWR API', status: 'ok' });
+});
+
+app.post('/signin', login);
+app.post('/signup', createUser);
+
+// Per Sprint-13 rubric, GET /items is public
 app.get('/items', getItems);
 
-app.get('/favicon.ico', (req, res) => res.status(204).end());
+// ---------- Protected routes (scope auth to these prefixes) ----------
+app.use('/users', auth, usersRouter);
+app.use('/items', auth, itemsRouter);
 
-app.use(auth);
-
-app.use(routes);
-
-app.use((req, res) => {
+// ---------- 404 ----------
+app.use('*', (_req, res) => {
   res.status(STATUS_NOT_FOUND).send({ message: 'Requested resource not found' });
 });
 
+// ---------- Centralized error handler ----------
+/* eslint-disable no-unused-vars */
+app.use((err, _req, res, _next) => {
+  let status = STATUS_INTERNAL_SERVER_ERROR;
+  let message = 'An error has occurred on the server.';
+
+  if (err.name === 'ValidationError') {
+    status = STATUS_BAD_REQUEST;
+    message = 'Invalid data passed to the method.';
+  } else if (err.name === 'CastError') {
+    status = STATUS_BAD_REQUEST;
+    message = 'Invalid id format.';
+  } else if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+    status = STATUS_UNAUTHORIZED;
+    message = 'Authorization required.';
+  } else if (err.code === 11000) {
+    status = STATUS_CONFLICT;
+    message = 'Email already exists.';
+  } else if (err.status === STATUS_FORBIDDEN || err.status === STATUS_UNAUTHORIZED) {
+    status = err.status;
+    message = err.message || (status === STATUS_FORBIDDEN ? 'Forbidden.' : 'Authorization required.');
+  } else if (err.status && err.message) {
+    status = err.status;
+    message = err.message;
+  }
+
+  res.status(status).send({ message });
+});
+/* eslint-enable no-unused-vars */
+
+// ---------- Start ----------
 app.listen(PORT, () => {
   console.log(`WTWR API is running on http://localhost:${PORT}`);
 });
