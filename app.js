@@ -52,6 +52,10 @@ mongoose
     process.exit(1);
   });
 
+app.get('/', (_req, res) => {
+  res.send({ status: 'ok', routes: ['/signin', '/signup', '/items', '/users/me'] });
+});
+
 // ---- Public routes ----
 app.post('/signin', login);
 app.post('/signup', createUser);
@@ -60,9 +64,8 @@ app.post('/signup', createUser);
 app.get('/items', getItems);
 
 // ---- Protected routes ----
-app.use(auth);
-app.use('/users', usersRouter);
-app.use('/items', itemsRouter);
+app.use('/users', auth, usersRouter);
+app.use('/items', auth, itemsRouter);
 
 // ---- 404 for unknown paths ----
 app.use((req, res) => {
