@@ -9,6 +9,7 @@ import {
   STATUS_CREATED,
   STATUS_OK,
 } from '../utils/constants.js';
+import { JWT_SECRET } from '../utils/config.js';
 
 // POST /signup
 export const createUser = async (req, res) => {
@@ -61,7 +62,8 @@ export const login = async (req, res) => {
       return res.status(STATUS_UNAUTHORIZED).send({ message: 'Incorrect email or password' });
     }
 
-    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+
     return res.status(STATUS_OK).send({ token });
   } catch (_err) {
     return res

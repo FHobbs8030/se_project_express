@@ -23,7 +23,6 @@ const app = express();
 const { PORT = 3001, MONGO_URL, CORS_ORIGIN, CORS_ORIGINS } = process.env;
 const DEFAULT_MONGO = 'mongodb://localhost:27017/wtwr_db';
 
-// Build CORS allow list from either CORS_ORIGIN or CORS_ORIGINS
 const allowList = (
   CORS_ORIGIN || CORS_ORIGINS
     ? (CORS_ORIGIN || CORS_ORIGINS).split(',').map((s) => s.trim()).filter(Boolean)
@@ -39,7 +38,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-// ensure CORS preflights are handled
 app.options('*', cors(corsOptions));
 
 app.use(express.json());
@@ -48,16 +46,13 @@ app.use(express.json());
 mongoose
   .connect(MONGO_URL || DEFAULT_MONGO)
   .then(() => {
-    // eslint-disable-next-line no-console
     console.log('✅ Connected to MongoDB');
   })
   .catch((err) => {
-    // eslint-disable-next-line no-console
     console.error('❌ MongoDB connection error:', err);
     process.exit(1);
   });
 
-// ---- Health / root ----
 app.get('/', (_req, res) => {
   res.status(STATUS_OK).send({ status: 'ok', routes: ['/signin', '/signup', '/items', '/users/me'] });
 });
@@ -66,7 +61,6 @@ app.get('/', (_req, res) => {
 app.post('/signin', login);
 app.post('/signup', createUser);
 
-// Public items list (kept open per Sprint-13)
 app.get('/items', getItems);
 
 // ---- Protected routes ----
