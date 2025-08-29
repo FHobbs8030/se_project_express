@@ -1,117 +1,108 @@
-// app.js
-import dotenv from 'dotenv';
-
+import 'dotenv/config';
 import express from 'express';
-import cors from 'cors';
 import mongoose from 'mongoose';
+import cors from 'cors';
 
-import auth from './middlewares/auth.js';
-import itemsRouter from './routes/items.js';
-import usersRouter from './routes/users.js';
-
-import { login, createUser } from './controllers/auth.js';
+import usersController from './controllers/users.js'; // default import
 import { getItems } from './controllers/items.js';
+import auth from './middlewares/auth.js';
+import usersRouter from './routes/users.js';
+import itemsRouter from './routes/items.js';
 
 import {
   STATUS_BAD_REQUEST,
   STATUS_UNAUTHORIZED,
-  STATUS_FORBIDDEN,
   STATUS_NOT_FOUND,
   STATUS_CONFLICT,
   STATUS_INTERNAL_SERVER_ERROR,
 } from './utils/constants.js';
 
-dotenv.config();
-
-const {
-  PORT = 3001,
-  MONGO_URL = 'mongodb://localhost:27017/wtwr_db',
-  CORS_ORIGIN,
-} = process.env;
-
 const app = express();
 
-// ---------- DB ----------
-mongoose
-  .connect(MONGO_URL)
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch((e) => {
-    console.error('Mongo connection error:', e);
-    process.exit(1);
-  });
+// ---- Basic config ----
+const { PORT = 3001, MONGO_URL, CORS_ORIGIN, CORS_ORIGINS } = process.env;
+const DEFAULT_MONGO = 'mongodb://localhost:27017/wtwr_db';
 
-// ---------- CORS ----------
-const allowList = (CORS_ORIGIN ? CORS_ORIGIN.split(',') : [
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'http://localhost:5174',
-]).map((s) => s.trim());
+// Allow list from env: CORS_ORIGIN or CORS_ORIGINS=comma,separated,urls
+const allowList = (CORS_ORIGIN || CORS_ORIGINS
+  ? (CORS_ORIGIN || CORS_ORIGINS).split(',').map((s) => s.trim()).filter(Boolean)
+  : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174']
+);
 
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin || allowList.includes(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
+    // allow REST tools / same-origin (no Origin header) and allowListed origins
+    if (!origin || allowList.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
   },
   credentials: true,
 };
 
 app.use(cors(corsOptions));
-
-// ---------- Parsers ----------
-app.disable('x-powered-by');
 app.use(express.json());
 
-// ---------- Public routes ----------
-app.get('/', (_req, res) => {
-  res.send({ service: 'WTWR API', status: 'ok' });
-});
+// ---- DB ----
+mongoose
+  .connect(MONGO_URL || DEFAULT_MONGO)
+  .then(() => {
+    // eslint-disable-next-line no-console
+    console.log('✅ Connected to MongoDB');
+  })
+  .catch((err) => {
+    // eslint-disable-next-line no-console
+    console.error('❌ MongoDB connection error:', err);
+    process.exit(1);
+  });
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+// ---- Public routes ----
+app.post('/signin', usersController.login);
+app.post('/signup', usersController.createUser);
 
-// Per Sprint-13 rubric, GET /items is public
+// Public items list
 app.get('/items', getItems);
 
-// ---------- Protected routes (scope auth to these prefixes) ----------
-app.use('/users', auth, usersRouter);
-app.use('/items', auth, itemsRouter);
+// ---- Protected routes ----
+app.use(auth);
+app.use('/users', usersRouter);
+app.use('/items', itemsRouter);
 
-// ---------- 404 ----------
-app.use('*', (_req, res) => {
+// ---- 404 for unknown paths ----
+app.use((req, res, _next) => {
+  // touch _next so ESLint doesn't flag it (no-op)
+  if (_next) { /* noop */ }
   res.status(STATUS_NOT_FOUND).send({ message: 'Requested resource not found' });
 });
 
-// ---------- Centralized error handler ----------
-/* eslint-disable no-unused-vars */
+// ---- Centralized error handler ----
 app.use((err, _req, res, _next) => {
-  let status = STATUS_INTERNAL_SERVER_ERROR;
-  let message = 'An error has occurred on the server.';
+  // touch _next so ESLint doesn't flag it (no-op)
+  if (_next) { /* noop */ }
 
-  if (err.name === 'ValidationError') {
-    status = STATUS_BAD_REQUEST;
-    message = 'Invalid data passed to the method.';
-  } else if (err.name === 'CastError') {
-    status = STATUS_BAD_REQUEST;
-    message = 'Invalid id format.';
-  } else if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-    status = STATUS_UNAUTHORIZED;
-    message = 'Authorization required.';
-  } else if (err.code === 11000) {
-    status = STATUS_CONFLICT;
-    message = 'Email already exists.';
-  } else if (err.status === STATUS_FORBIDDEN || err.status === STATUS_UNAUTHORIZED) {
-    status = err.status;
-    message = err.message || (status === STATUS_FORBIDDEN ? 'Forbidden.' : 'Authorization required.');
-  } else if (err.status && err.message) {
-    status = err.status;
-    message = err.message;
+  let status = err.statusCode || STATUS_INTERNAL_SERVER_ERROR;
+
+  // Map common cases when statusCode isn’t set
+  if (!err.statusCode) {
+    if (err.name === 'ValidationError' || err.name === 'CastError') {
+      status = STATUS_BAD_REQUEST;
+    } else if (err.code === 11000) {
+      status = STATUS_CONFLICT;
+    } else if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      status = STATUS_UNAUTHORIZED;
+    }
   }
+
+  const message = status === STATUS_INTERNAL_SERVER_ERROR
+    ? 'An error has occurred on the server.'
+    : (err.message || 'An error occurred');
 
   res.status(status).send({ message });
 });
-/* eslint-enable no-unused-vars */
 
-// ---------- Start ----------
+// ---- Start server ----
 app.listen(PORT, () => {
-  console.log(`WTWR API is running on http://localhost:${PORT}`);
+  // eslint-disable-next-line no-console
+  console.log(`🚀 Server listening on http://localhost:${PORT}`);
 });
