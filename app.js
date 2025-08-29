@@ -53,6 +53,8 @@ app.use(express.json());
 app.use(authRouter);
 app.get('/items', getItems);
 
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 app.use(auth);
 
 app.use(routes);
