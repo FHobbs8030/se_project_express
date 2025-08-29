@@ -3,7 +3,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 
-import usersController from './controllers/users.js'; // default import
+import { login, createUser } from './controllers/auth.js';
 import { getItems } from './controllers/items.js';
 import auth from './middlewares/auth.js';
 import usersRouter from './routes/users.js';
@@ -19,11 +19,10 @@ import {
 
 const app = express();
 
-// ---- Basic config ----
 const { PORT = 3001, MONGO_URL, CORS_ORIGIN, CORS_ORIGINS } = process.env;
 const DEFAULT_MONGO = 'mongodb://localhost:27017/wtwr_db';
 
-// Allow list from env: CORS_ORIGIN or CORS_ORIGINS=comma,separated,urls
+// Build CORS allow list from either CORS_ORIGIN or CORS_ORIGINS
 const allowList = (CORS_ORIGIN || CORS_ORIGINS
   ? (CORS_ORIGIN || CORS_ORIGINS).split(',').map((s) => s.trim()).filter(Boolean)
   : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174']
@@ -31,12 +30,8 @@ const allowList = (CORS_ORIGIN || CORS_ORIGINS
 
 const corsOptions = {
   origin(origin, callback) {
-    // allow REST tools / same-origin (no Origin header) and allowListed origins
-    if (!origin || allowList.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    if (!origin || allowList.includes(origin)) callback(null, true);
+    else callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
 };
@@ -58,10 +53,10 @@ mongoose
   });
 
 // ---- Public routes ----
-app.post('/signin', usersController.login);
-app.post('/signup', usersController.createUser);
+app.post('/signin', login);
+app.post('/signup', createUser);
 
-// Public items list
+// Public items list (kept open per Sprint-13)
 app.get('/items', getItems);
 
 // ---- Protected routes ----
@@ -70,20 +65,17 @@ app.use('/users', usersRouter);
 app.use('/items', itemsRouter);
 
 // ---- 404 for unknown paths ----
-app.use((req, res, _next) => {
-  // touch _next so ESLint doesn't flag it (no-op)
-  if (_next) { /* noop */ }
+app.use((req, res) => {
   res.status(STATUS_NOT_FOUND).send({ message: 'Requested resource not found' });
 });
 
 // ---- Centralized error handler ----
 app.use((err, _req, res, _next) => {
-  // touch _next so ESLint doesn't flag it (no-op)
+  // mark _next as used (no-op for ESLint)
   if (_next) { /* noop */ }
 
   let status = err.statusCode || STATUS_INTERNAL_SERVER_ERROR;
 
-  // Map common cases when statusCode isn’t set
   if (!err.statusCode) {
     if (err.name === 'ValidationError' || err.name === 'CastError') {
       status = STATUS_BAD_REQUEST;
@@ -101,7 +93,6 @@ app.use((err, _req, res, _next) => {
   res.status(status).send({ message });
 });
 
-// ---- Start server ----
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`🚀 Server listening on http://localhost:${PORT}`);
