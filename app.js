@@ -10,6 +10,7 @@ import usersRouter from './routes/users.js';
 import itemsRouter from './routes/items.js';
 
 import {
+  STATUS_OK,
   STATUS_BAD_REQUEST,
   STATUS_UNAUTHORIZED,
   STATUS_NOT_FOUND,
@@ -23,9 +24,10 @@ const { PORT = 3001, MONGO_URL, CORS_ORIGIN, CORS_ORIGINS } = process.env;
 const DEFAULT_MONGO = 'mongodb://localhost:27017/wtwr_db';
 
 // Build CORS allow list from either CORS_ORIGIN or CORS_ORIGINS
-const allowList = (CORS_ORIGIN || CORS_ORIGINS
-  ? (CORS_ORIGIN || CORS_ORIGINS).split(',').map((s) => s.trim()).filter(Boolean)
-  : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174']
+const allowList = (
+  CORS_ORIGIN || CORS_ORIGINS
+    ? (CORS_ORIGIN || CORS_ORIGINS).split(',').map((s) => s.trim()).filter(Boolean)
+    : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174']
 );
 
 const corsOptions = {
@@ -37,6 +39,9 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+// ensure CORS preflights are handled
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
 
 // ---- DB ----
@@ -52,8 +57,9 @@ mongoose
     process.exit(1);
   });
 
+// ---- Health / root ----
 app.get('/', (_req, res) => {
-  res.send({ status: 'ok', routes: ['/signin', '/signup', '/items', '/users/me'] });
+  res.status(STATUS_OK).send({ status: 'ok', routes: ['/signin', '/signup', '/items', '/users/me'] });
 });
 
 // ---- Public routes ----
@@ -74,8 +80,7 @@ app.use((req, res) => {
 
 // ---- Centralized error handler ----
 app.use((err, _req, res, _next) => {
-  // mark _next as used (no-op for ESLint)
-  if (_next) { /* noop */ }
+  if (_next) { /* no-op to satisfy ESLint */ }
 
   let status = err.statusCode || STATUS_INTERNAL_SERVER_ERROR;
 
