@@ -1,11 +1,20 @@
-import express from 'express';
-import { createItem, deleteItem, likeItem, unlikeItem } from '../controllers/clothes.js';
+import { Router } from 'express';
+import {
+  getItems,
+  getItem,
+  createItem,
+  deleteItem,
+  likeItem,
+  unlikeItem,
+} from '../controllers/items.js';
 
-const router = express.Router();
+const router = Router();
 
-// Sprint-12: no auth middleware, no validation middleware
-// Hardcoded user _id is set in app.js
+// Public in Sprint-13 rubric
+router.get('/', getItems);
 
+// The rest should be protected by your global auth middleware in app.js
+router.get('/:id', getItem);
 router.post('/', createItem);
 router.delete('/:id', deleteItem);
 router.put('/:id/likes', likeItem);

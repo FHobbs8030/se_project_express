@@ -8,23 +8,24 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 2,
       maxlength: 30,
+      trim: true,
     },
     avatar: {
       type: String,
       required: true,
       validate: {
-        validator: (v) =>
-          validator.isURL(v, { protocols: ['http', 'https'], require_protocol: true }),
-        message: 'Invalid avatar URL',
+        validator: (v) => validator.isURL(v, { require_protocol: true }),
+        message: 'avatar must be a valid URL',
       },
     },
     email: {
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
       validate: {
-        validator: (v) => validator.isEmail(v),
-        message: 'Invalid email',
+        validator: validator.isEmail,
+        message: 'email must be valid',
       },
     },
     password: {
@@ -32,8 +33,16 @@ const userSchema = new mongoose.Schema(
       required: true,
       select: false,
     },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+      required: true,
+    },
   },
-  { timestamps: true, versionKey: false },
+  { versionKey: false },
 );
+
+// Ensure uniqueness at DB level too
+userSchema.index({ email: 1 }, { unique: true });
 
 export default mongoose.model('user', userSchema);
