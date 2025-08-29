@@ -9,7 +9,6 @@ import {
 
 const router = Router();
 
-// The rest should be protected by your global auth middleware in app.js
 router.get('/:id', getItem);
 router.post('/', createItem);
 router.delete('/:id', deleteItem);
