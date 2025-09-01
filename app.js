@@ -3,8 +3,6 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 
-import routes from './routes/index.js';
-
 import {
   STATUS_BAD_REQUEST,
   STATUS_UNAUTHORIZED,
@@ -45,9 +43,6 @@ mongoose
     console.error('❌ MongoDB connection error:', err);
     process.exit(1);
   });
-
-// ---- Centralized routes ----
-app.use('/', routes);
 
 // ---- Centralized error handler ----
 app.use((err, _req, res, _next) => {
