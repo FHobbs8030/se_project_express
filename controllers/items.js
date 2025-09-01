@@ -1,4 +1,3 @@
-// controllers/items.js
 import ClothingItem from '../models/clothingItem.js';
 import {
   STATUS_OK,
