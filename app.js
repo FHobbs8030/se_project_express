@@ -3,17 +3,11 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 
-import { login, createUser } from './controllers/auth.js';
-import { getItems } from './controllers/items.js';
-import auth from './middlewares/auth.js';
-import usersRouter from './routes/users.js';
-import itemsRouter from './routes/items.js';
+import routes from './routes/index.js';
 
 import {
-  STATUS_OK,
   STATUS_BAD_REQUEST,
   STATUS_UNAUTHORIZED,
-  STATUS_NOT_FOUND,
   STATUS_CONFLICT,
   STATUS_INTERNAL_SERVER_ERROR,
 } from './utils/constants.js';
@@ -39,7 +33,6 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
-
 app.use(express.json());
 
 // ---- DB ----
@@ -53,24 +46,8 @@ mongoose
     process.exit(1);
   });
 
-app.get('/', (_req, res) => {
-  res.status(STATUS_OK).send({ status: 'ok', routes: ['/signin', '/signup', '/items', '/users/me'] });
-});
-
-// ---- Public routes ----
-app.post('/signin', login);
-app.post('/signup', createUser);
-
-app.get('/items', getItems);
-
-// ---- Protected routes ----
-app.use('/users', auth, usersRouter);
-app.use('/items', auth, itemsRouter);
-
-// ---- 404 for unknown paths ----
-app.use((req, res) => {
-  res.status(STATUS_NOT_FOUND).send({ message: 'Requested resource not found' });
-});
+// ---- Centralized routes ----
+app.use('/', routes);
 
 // ---- Centralized error handler ----
 app.use((err, _req, res, _next) => {
@@ -96,6 +73,5 @@ app.use((err, _req, res, _next) => {
 });
 
 app.listen(PORT, () => {
-  // eslint-disable-next-line no-console
   console.log(`🚀 Server listening on http://localhost:${PORT}`);
 });
