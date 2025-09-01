@@ -1,3 +1,4 @@
+// controllers/auth.js
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
@@ -9,7 +10,7 @@ import {
   STATUS_CREATED,
   STATUS_OK,
 } from '../utils/constants.js';
-import { JWT_SECRET } from '../utils/config.js';
+import JWT_SECRET from '../utils/jwt.js';
 
 // POST /signup
 export const createUser = async (req, res) => {

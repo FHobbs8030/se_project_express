@@ -1,6 +1,7 @@
 // middlewares/auth.js
 import jwt from 'jsonwebtoken';
 import { STATUS_UNAUTHORIZED } from '../utils/constants.js';
+import JWT_SECRET from '../utils/jwt.js'; // <-- fix: ../utils/...
 
 export default function auth(req, res, next) {
   const { authorization = '' } = req.headers;
@@ -12,7 +13,7 @@ export default function auth(req, res, next) {
   }
 
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET); // { _id: ... }
+    const payload = jwt.verify(token, JWT_SECRET); // { _id: ... }
     req.user = payload;
     return next();
   } catch (_err) {
