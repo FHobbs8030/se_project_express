@@ -1,4 +1,3 @@
-// routes/index.js
 import { Router } from 'express';
 import itemsRouter from './items.js';
 import usersRouter from './users.js';
@@ -16,7 +15,7 @@ router.post('/signin', login);
 router.get('/items', getItems);
 
 // Protected routes
-router.use('/items', auth, itemsRouter); // create/delete/like/unlike need auth
-router.use('/users', auth, usersRouter); // /users/me, etc.
+router.use('/items', auth, itemsRouter);
+router.use('/users', auth, usersRouter);
 
 export default router;

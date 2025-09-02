@@ -16,11 +16,9 @@ const app = express();
 const { PORT = 3001, MONGO_URL, CORS_ORIGIN, CORS_ORIGINS } = process.env;
 const DEFAULT_MONGO = 'mongodb://localhost:27017/wtwr_db';
 
-const allowList = (
-  CORS_ORIGIN || CORS_ORIGINS
-    ? (CORS_ORIGIN || CORS_ORIGINS).split(',').map((s) => s.trim()).filter(Boolean)
-    : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174']
-);
+const allowList = (CORS_ORIGIN || CORS_ORIGINS)
+  ? (CORS_ORIGIN || CORS_ORIGINS).split(',').map((s) => s.trim()).filter(Boolean)
+  : ['http://localhost:3000', 'http://localhost:5173', 'http://localhost:5174'];
 
 const corsOptions = {
   origin(origin, callback) {
@@ -30,6 +28,7 @@ const corsOptions = {
   credentials: true,
 };
 
+// Middleware order: CORS ➜ JSON parser ➜ router
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
@@ -46,6 +45,7 @@ mongoose
     process.exit(1);
   });
 
+// 404 (keep before the error handler)
 app.use((req, res) => {
   res.status(404).send({ message: 'Requested resource not found' });
 });
