@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
+import router from './routes/index.js';
 
 import {
   STATUS_BAD_REQUEST,
@@ -32,6 +33,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
+app.use(router);
 
 // ---- DB ----
 mongoose
@@ -43,6 +45,10 @@ mongoose
     console.error('❌ MongoDB connection error:', err);
     process.exit(1);
   });
+
+app.use((req, res) => {
+  res.status(404).send({ message: 'Requested resource not found' });
+});
 
 // ---- Centralized error handler ----
 app.use((err, _req, res, _next) => {
