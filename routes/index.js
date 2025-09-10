@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import { celebrate, Joi, Segments } from 'celebrate';
+
 import { signup, signin } from '../controllers/auth.js';
+import { getItems } from '../controllers/items.js';
 import auth from '../middlewares/auth.js';
-import usersRouter from './users.js';
 import itemsRouter from './items.js';
+import usersRouter from './users.js';
 
 const router = Router();
 
@@ -31,8 +33,16 @@ router.post(
   signin,
 );
 
+// PUBLIC: anyone can fetch clothing items
+router.get('/items', getItems);
+
+// Everything below this line requires a valid JWT
 router.use(auth);
-router.use(usersRouter);
+
+// Protected items routes (create/delete)
 router.use(itemsRouter);
+
+// Protected user routes (profile, etc.)
+router.use(usersRouter);
 
 export default router;
