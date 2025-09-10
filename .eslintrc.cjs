@@ -1,15 +1,25 @@
 module.exports = {
+  root: true,
+  env: { node: true, es2022: true },
   extends: ['airbnb-base'],
-  env: { node: true, es2021: true },
   parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+  settings: {
+    'import/resolver': { node: { extensions: ['.js', '.mjs', '.json'] } },
+  },
   rules: {
-    'no-underscore-dangle': ['error', { allow: ['_id'] }],
-    'import/extensions': ['error', 'ignorePackages', { js: 'always', mjs: 'always' }],
+    'max-len': ['error', {
+      code: 100,
+      ignoreUrls: true,
+      ignoreStrings: true,
+      ignoreTemplateLiterals: true,
+    }],
+    'consistent-return': 'off',
+    'func-names': ['error', 'as-needed'],
+    'no-param-reassign': ['error', { props: false }],
+    'import/extensions': 'off',
+    'import/no-extraneous-dependencies': ['error', { packageDir: __dirname }],
     'object-curly-newline': 'off',
-    'implicit-arrow-linebreak': 'off',
-    'function-paren-newline': 'off',
-
-    // ← turn off console complaints
-    'no-console': 'off',
+    'no-multiple-empty-lines': ['error', { max: 1, maxBOF: 0, maxEOF: 1 }],
+    'no-console': ['warn', { allow: ['info', 'warn', 'error'] }],
   },
 };

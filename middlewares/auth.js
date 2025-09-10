@@ -1,21 +1,14 @@
 import jwt from 'jsonwebtoken';
-import { STATUS_UNAUTHORIZED } from '../utils/constants.js';
-import JWT_SECRET from '../utils/jwt.js';
 
 export default function auth(req, res, next) {
-  const { authorization = '' } = req.headers;
-
-  // Expect: Authorization: Bearer <token>
-  const [scheme, token] = authorization.split(' ');
-  if (scheme?.toLowerCase() !== 'bearer' || !token) {
-    return res.status(STATUS_UNAUTHORIZED).send({ message: 'Authorization required' });
-  }
-
+  const h = req.headers.authorization || '';
+  const token = h.startsWith('Bearer ') ? h.slice(7) : null;
+  if (!token) return res.status(401).send({ message: 'Authorization required' });
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
+    const payload = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
     req.user = payload;
     return next();
-  } catch (_err) {
-    return res.status(STATUS_UNAUTHORIZED).send({ message: 'Invalid or expired token' });
+  } catch {
+    return res.status(401).send({ message: 'Invalid token' });
   }
 }

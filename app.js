@@ -3,6 +3,8 @@ import path from 'node:path';
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
+import { errors as celebrateErrors } from 'celebrate';
+
 import router from './routes/index.js';
 import {
   STATUS_BAD_REQUEST,
@@ -43,24 +45,13 @@ app.use(
 
 app.use(router);
 
-mongoose
-  .connect(MONGO_URL || DEFAULT_MONGO)
-  .then(() => {
-    console.log('✅ Connected to MongoDB');
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB connection error:', err);
-    process.exit(1);
-  });
-
 app.use((req, res) => {
   res.status(404).send({ message: 'Requested resource not found' });
 });
 
-app.use((err, _req, res, _next) => {
-  // mark `_next` as used without calling it (satisfies no-unused-vars, avoids no-void)
-  Boolean(_next);
+app.use(celebrateErrors());
 
+app.use((err, _req, res) => {
   let status = err.statusCode || STATUS_INTERNAL_SERVER_ERROR;
 
   if (!err.statusCode) {
@@ -80,6 +71,16 @@ app.use((err, _req, res, _next) => {
   res.status(status).send({ message });
 });
 
+mongoose
+  .connect(MONGO_URL || DEFAULT_MONGO)
+  .then(() => {
+    console.info('✅ Connected to MongoDB');
+  })
+  .catch((err) => {
+    console.error('❌ MongoDB connection error:', err);
+    process.exit(1);
+  });
+
 app.listen(PORT, () => {
-  console.log(`🚀 Server listening on http://localhost:${PORT}`);
+  console.info(`🚀 Server listening on http://localhost:${PORT}`);
 });

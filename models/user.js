@@ -1,47 +1,47 @@
 import mongoose from 'mongoose';
-import validator from 'validator';
-
+import bcrypt from 'bcryptjs';
 const userSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-      minlength: 2,
-      maxlength: 30,
-      trim: true,
-    },
-    avatar: {
-      type: String,
-      required: true,
-      validate: {
-        validator: (v) => validator.isURL(v, { require_protocol: true }),
-        message: 'avatar must be a valid URL',
-      },
-    },
+    name: { type: String, minlength: 2, maxlength: 30, required: true, trim: true },
     email: {
       type: String,
+      unique: true,
       required: true,
-      unique: true, // <-- keep this
       lowercase: true,
-      validate: {
-        validator: validator.isEmail,
-        message: 'email must be valid',
-      },
+      trim: true,
+      index: true,
     },
-    password: {
-      type: String,
-      required: true,
-      select: false,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-      required: true,
-    },
+    password: { type: String, required: true, select: false },
+    avatar: { type: String, default: '' },
   },
-  { versionKey: false },
+  { timestamps: true, versionKey: false },
 );
 
-// ❌ remove any extra: userSchema.index({ email: 1 }, { unique: true });
+// name the hook function for func-names; always return for consistent-return
+userSchema.pre('save', async function hash(next) {
+  if (!this.isModified('password')) return next();
+  try {
+    this.password = await bcrypt.hash(this.password, 10);
+    return next();
+  } catch (err) {
+    return next(err);
+  }
+});
 
-export default mongoose.model('user', userSchema);
+userSchema.statics.findByCredentials = async function findByCredentials(email, password) {
+  const user = await this.findOne({ email: String(email || '').toLowerCase() }).select('+password');
+  if (!user) throw Object.assign(new Error('Incorrect email or password'), { statusCode: 401 });
+  const ok = await bcrypt.compare(password, user.password);
+  if (!ok) throw Object.assign(new Error('Incorrect email or password'), { statusCode: 401 });
+  return user;
+};
+
+// avoid param reassign; return new object
+userSchema.set('toJSON', {
+  transform(_doc, ret) {
+    const { password, ...rest } = ret;
+    return rest;
+  },
+});
+
+export default mongoose.model('User', userSchema);

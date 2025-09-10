@@ -1,9 +1,6 @@
 import { Router } from 'express';
 import { celebrate, Joi, Segments } from 'celebrate';
-import { signup, signin } from '../controllers/auth.js';
-import auth from '../middlewares/auth.js';
-import usersRouter from './users.js';
-import itemsRouter from './items.js';
+import { signin, signup } from '../controllers/auth.js';
 
 const router = Router();
 
@@ -30,9 +27,5 @@ router.post(
   }),
   signin,
 );
-
-router.use(auth);
-router.use(usersRouter);
-router.use(itemsRouter);
 
 export default router;
