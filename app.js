@@ -1,9 +1,9 @@
 import 'dotenv/config';
+import path from 'node:path';
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import router from './routes/index.js';
-
 import {
   STATUS_BAD_REQUEST,
   STATUS_UNAUTHORIZED,
@@ -28,13 +28,21 @@ const corsOptions = {
   credentials: true,
 };
 
-// Middleware order: CORS ➜ JSON parser ➜ router
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 app.use(express.json());
+
+app.use(
+  '/static',
+  express.static(path.join(process.cwd(), 'public'), {
+    index: false,
+    maxAge: '7d',
+    etag: true,
+  }),
+);
+
 app.use(router);
 
-// ---- DB ----
 mongoose
   .connect(MONGO_URL || DEFAULT_MONGO)
   .then(() => {
@@ -45,14 +53,13 @@ mongoose
     process.exit(1);
   });
 
-// 404 (keep before the error handler)
 app.use((req, res) => {
   res.status(404).send({ message: 'Requested resource not found' });
 });
 
-// ---- Centralized error handler ----
 app.use((err, _req, res, _next) => {
-  if (_next) { /* no-op to satisfy ESLint */ }
+  // mark `_next` as used without calling it (satisfies no-unused-vars, avoids no-void)
+  Boolean(_next);
 
   let status = err.statusCode || STATUS_INTERNAL_SERVER_ERROR;
 
@@ -68,7 +75,7 @@ app.use((err, _req, res, _next) => {
 
   const message = status === STATUS_INTERNAL_SERVER_ERROR
     ? 'An error has occurred on the server.'
-    : (err.message || 'An error occurred');
+    : err.message || 'An error occurred';
 
   res.status(status).send({ message });
 });
