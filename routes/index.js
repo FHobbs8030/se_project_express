@@ -4,8 +4,8 @@ import { celebrate, Joi, Segments } from 'celebrate';
 import { signup, signin } from '../controllers/auth.js';
 import { getItems } from '../controllers/items.js';
 import auth from '../middlewares/auth.js';
-import itemsRouter from './items.js';
 import usersRouter from './users.js';
+import itemsRouter from './items.js';
 
 const router = Router();
 
@@ -33,16 +33,12 @@ router.post(
   signin,
 );
 
-// PUBLIC: anyone can fetch clothing items
+// PUBLIC list endpoint
 router.get('/items', getItems);
 
-// Everything below this line requires a valid JWT
+// Auth-only below
 router.use(auth);
-
-// Protected items routes (create/delete)
-router.use(itemsRouter);
-
-// Protected user routes (profile, etc.)
 router.use(usersRouter);
+router.use(itemsRouter);
 
 export default router;

@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { celebrate, Joi, Segments } from 'celebrate';
 import { Types } from 'mongoose';
-
 import auth from '../middlewares/auth.js';
 import { createItem, deleteItem } from '../controllers/items.js';
 
@@ -14,7 +13,7 @@ router.post(
     [Segments.BODY]: Joi.object({
       name: Joi.string().min(2).max(30).required(),
       weather: Joi.string().valid('hot', 'warm', 'cold').required(),
-      imageUrl: Joi.string().uri().required(),
+      imageUrl: Joi.string().uri({ scheme: ['http', 'https'] }).required(),
     }),
   }),
   createItem,
@@ -27,7 +26,7 @@ router.delete(
     [Segments.PARAMS]: Joi.object({
       itemId: Joi.string().custom((v, helpers) => (
         Types.ObjectId.isValid(v) ? v : helpers.error('any.invalid')
-      )),
+      )).required(),
     }),
   }),
   deleteItem,

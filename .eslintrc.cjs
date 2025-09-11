@@ -1,25 +1,41 @@
+/* eslint-disable import/no-commonjs */
 module.exports = {
   root: true,
   env: { node: true, es2022: true },
   extends: ['airbnb-base'],
   parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
+
   settings: {
-    'import/resolver': { node: { extensions: ['.js', '.mjs', '.json'] } },
+    // Make the import plugin understand .js/.mjs with ESM
+    'import/resolver': {
+      node: { extensions: ['.js', '.mjs'] },
+    },
   },
+
   rules: {
+    // keep MongoDB IDs & version keys without warnings
+    'no-underscore-dangle': ['error', {
+      allow: ['_id', '__v'],
+      allowAfterThis: true,
+      allowAfterSuper: true,
+      enforceInMethodNames: false,
+    }],
+
+    // ESM needs file extensions in imports; silence Airbnb’s preference
+    'import/extensions': 'off',
+
+    // Loosen formatting nitpicks that conflict with Prettier/your style
+    'object-curly-newline': 'off',
+
+    // keep the rest sane and practical
     'max-len': ['error', {
-      code: 100,
+      code: 110,
       ignoreUrls: true,
       ignoreStrings: true,
       ignoreTemplateLiterals: true,
     }],
     'consistent-return': 'off',
-    'func-names': ['error', 'as-needed'],
-    'no-param-reassign': ['error', { props: false }],
-    'import/extensions': 'off',
-    'import/no-extraneous-dependencies': ['error', { packageDir: __dirname }],
-    'object-curly-newline': 'off',
-    'no-multiple-empty-lines': ['error', { max: 1, maxBOF: 0, maxEOF: 1 }],
-    'no-console': ['warn', { allow: ['info', 'warn', 'error'] }],
+    'func-names': 'off',
+    'no-console': 'off',
   },
 };
