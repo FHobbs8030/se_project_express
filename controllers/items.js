@@ -2,7 +2,8 @@ import Item from '../models/item.js';
 
 export async function getItems(_req, res, next) {
   try {
-    const items = await Item.find({}).lean();
+    // expose owner so the frontend can filter by currentUser._id
+    const items = await Item.find({}).select('+owner').lean();
     return res.send(items);
   } catch (e) {
     return next(e);
@@ -34,3 +35,6 @@ export async function deleteItem(req, res, next) {
     return next(e);
   }
 }
+
+// remove the duplicate listItems OR export an alias if the route expects it:
+// export const listItems = getItems;
