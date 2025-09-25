@@ -13,10 +13,7 @@ import User from "./models/user.js";
 
 dotenv.config();
 
-const {
-  PORT = 3001,
-  MONGO_URL = "mongodb://127.0.0.1:27017/wtwr_db",
-} = process.env;
+const { PORT = 3001, MONGO_URL = "mongodb://127.0.0.1:27017/wtwr_db" } = process.env;
 
 const app = express();
 
@@ -32,7 +29,22 @@ app.use(
 );
 app.options("*", cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginOpenerPolicy: { policy: "same-origin" },
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginEmbedderPolicy: false,
+  })
+);
+app.use(
+  helmet.contentSecurityPolicy({
+    useDefaults: true,
+    directives: {
+      "img-src": ["'self'", "data:", "http://localhost:3001"],
+    },
+  })
+);
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -59,7 +71,11 @@ app.get("/_debug/check", async (req, res) => {
 
 app.use(
   "/images/clothes",
-  express.static(path.join(__dirname, "public", "images", "clothes"))
+  express.static(path.join(__dirname, "public", "images", "clothes"), {
+    setHeaders(res) {
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    },
+  })
 );
 
 app.use("/", router);
