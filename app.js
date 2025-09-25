@@ -1,63 +1,85 @@
-import 'dotenv/config';
-import path from 'node:path';
-import express from 'express';
-import mongoose from 'mongoose';
-import cors from 'cors';
-import { errors as celebrateErrors } from 'celebrate';
-import router from './routes/index.js';
+import dotenv from "dotenv";
+import express from "express";
+import cookieParser from "cookie-parser";
+import helmet from "helmet";
+import mongoose from "mongoose";
+import path from "path";
+import { fileURLToPath } from "url";
+import cors from "cors";
+import bcrypt from "bcryptjs";
 
-const { PORT = 3001, MONGO_URL, CORS_ORIGIN, CORS_ORIGINS, JWT_SECRET } = process.env;
-const DB_URL = MONGO_URL || 'mongodb://127.0.0.1:27017/wtwr_db';
+import router from "./routes/index.js";
+import User from "./models/user.js";
+
+dotenv.config();
+
+const {
+  PORT = 3001,
+  MONGO_URL = "mongodb://127.0.0.1:27017/wtwr_db",
+} = process.env;
 
 const app = express();
 
-const allowOrigins = (CORS_ORIGINS || CORS_ORIGIN || 'http://localhost:5173,http://localhost:3000')
-  .split(',')
-  .map((s) => s.trim())
-  .filter(Boolean);
+const ALLOWED_ORIGINS = ["http://localhost:5173", "http://localhost:3000"];
 
-const corsOptions = {
-  origin: allowOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
+app.use(
+  cors({
+    origin: ALLOWED_ORIGINS,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+app.options("*", cors({ origin: ALLOWED_ORIGINS, credentials: true }));
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
-
+app.use(helmet());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-app.use('/public', express.static(path.join(process.cwd(), 'public')));
+process.on("uncaughtException", (e) => console.error("[uncaughtException]", e));
+process.on("unhandledRejection", (e) => console.error("[unhandledRejection]", e));
 
-app.use(router);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-app.use((req, res) => {
-  res.status(404).send({ message: 'Resource not found' });
+app.get("/health", (req, res) => res.send({ status: "ok" }));
+
+app.get("/_debug/check", async (req, res) => {
+  try {
+    const email = String(req.query.email || "").toLowerCase().trim();
+    const password = String(req.query.password || "");
+    const user = await User.findOne({ email }).select("+password");
+    if (!user) return res.send({ found: false });
+    const ok = await bcrypt.compare(password, user.password);
+    res.send({ found: true, compareOK: ok, hashPrefix: user.password?.slice(0, 4) });
+  } catch (e) {
+    res.status(500).send({ error: String(e) });
+  }
 });
 
-app.use(celebrateErrors());
+app.use(
+  "/images/clothes",
+  express.static(path.join(__dirname, "public", "images", "clothes"))
+);
+
+app.use("/", router);
 
 app.use((err, req, res, next) => {
-  if (res.headersSent) return next(err);
-  let status = err.statusCode || 500;
-  if (err.name === 'ValidationError' || err.name === 'CastError') status = 400;
-  else if (err.code === 11000) status = 409;
-  const message = err.message || (status === 500 ? 'Internal Server Error' : 'Request failed');
+  const status = err.statusCode || 500;
+  const message = status === 500 ? "Server error" : err.message;
   res.status(status).send({ message });
 });
 
+const server = app.listen(PORT, () => {
+  console.log(`[server] API listening on http://localhost:${PORT}`);
+  console.log("[server] connecting to Mongo:", MONGO_URL);
+});
+
 mongoose
-  .connect(DB_URL, { autoIndex: true })
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server listening on http://localhost:${PORT}`);
-      console.log('Connected to MongoDB');
-      if (!JWT_SECRET) console.warn('Warning: JWT_SECRET is not set');
-    });
-  })
-  .catch((e) => {
-    console.error('Mongo connection error:', e.message);
-    process.exit(1);
-  });
+  .connect(MONGO_URL)
+  .then(() => console.log("[server] Mongo connected"))
+  .catch((err) => console.error("[server] Mongo connection error:", err.message));
+
+process.on("SIGINT", () => {
+  server.close(() => process.exit(0));
+});

@@ -1,47 +1,21 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+import mongoose from "mongoose";
+import validator from "validator";
+
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, minlength: 2, maxlength: 30, required: true, trim: true },
+    name: { type: String, required: true, minlength: 2, maxlength: 30 },
     email: {
       type: String,
-      unique: true,
       required: true,
+      unique: true,
       lowercase: true,
       trim: true,
-      index: true,
+      validate: { validator: validator.isEmail, message: "Invalid email" }
     },
     password: { type: String, required: true, select: false },
-    avatar: { type: String, default: '' },
+    avatar: { type: String, default: "" }
   },
-  { timestamps: true, versionKey: false },
+  { timestamps: true }
 );
 
-// name the hook function for func-names; always return for consistent-return
-userSchema.pre('save', async function hash(next) {
-  if (!this.isModified('password')) return next();
-  try {
-    this.password = await bcrypt.hash(this.password, 10);
-    return next();
-  } catch (err) {
-    return next(err);
-  }
-});
-
-userSchema.statics.findByCredentials = async function findByCredentials(email, password) {
-  const user = await this.findOne({ email: String(email || '').toLowerCase() }).select('+password');
-  if (!user) throw Object.assign(new Error('Incorrect email or password'), { statusCode: 401 });
-  const ok = await bcrypt.compare(password, user.password);
-  if (!ok) throw Object.assign(new Error('Incorrect email or password'), { statusCode: 401 });
-  return user;
-};
-
-// avoid param reassign; return new object
-userSchema.set('toJSON', {
-  transform(_doc, ret) {
-    const { password, ...rest } = ret;
-    return rest;
-  },
-});
-
-export default mongoose.model('User', userSchema);
+export default mongoose.model("User", userSchema);

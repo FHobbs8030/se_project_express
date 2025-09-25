@@ -1,14 +1,13 @@
-import mongoose from 'mongoose';
+﻿import mongoose from "mongoose";
 
 const itemSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, minlength: 2, maxlength: 30, trim: true },
-    weather: { type: String, required: true, enum: ['hot', 'warm', 'cold'] },
+    name: { type: String, required: true, trim: true },
+    weather: { type: String, enum: ["hot", "warm", "cold"], required: true },
     imageUrl: { type: String, required: true },
-    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, select: false },
-    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', select: false }],
+    owner: { type: mongoose.Schema.Types.ObjectId, ref: "User" }
   },
-  { timestamps: true, versionKey: false },
+  { timestamps: true }
 );
 
-export default mongoose.model('Item', itemSchema);
+export default mongoose.model("Item", itemSchema);
