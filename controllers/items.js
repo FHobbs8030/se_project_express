@@ -1,26 +1,23 @@
-﻿import Item from "../models/item.js";
-
-export async function getItems(req, res, next) {
+﻿export async function likeItem(req,res,next){
   try {
-    const items = await Item.find().lean();
-    res.status(200).send(items);
-  } catch (e) { next(e); }
+    const doc = await Item.findByIdAndUpdate(
+      req.params.itemId,
+      { $addToSet: { likes: req.user._id } },
+      { new: true }
+    );
+    if (!doc) return res.status(404).send({ message: 'Item not found' });
+    res.send(doc);
+  } catch(e){ next(e); }
 }
 
-export async function createItem(req, res, next) {
+export async function unlikeItem(req,res,next){
   try {
-    const { name, weather, imageUrl } = req.body;
-    const owner = req.user?._id || null;
-    const item = await Item.create({ name, weather, imageUrl, owner });
-    res.status(201).send(item);
-  } catch (e) { next(e); }
-}
-
-export async function deleteItem(req, res, next) {
-  try {
-    const { id } = req.params;
-    const deleted = await Item.findByIdAndDelete(id);
-    if (!deleted) return res.status(404).send({ message: "Item not found" });
-    res.send({ message: "Deleted", id });
-  } catch (e) { next(e); }
+    const doc = await Item.findByIdAndUpdate(
+      req.params.itemId,
+      { $pull: { likes: req.user._id } },
+      { new: true }
+    );
+    if (!doc) return res.status(404).send({ message: 'Item not found' });
+    res.send(doc);
+  } catch(e){ next(e); }
 }

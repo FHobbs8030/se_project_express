@@ -1,11 +1,10 @@
-﻿import { Router } from "express";
-import { getMe, updateMe } from "../controllers/users.js";
-import auth from "../middlewares/auth.js";
+﻿// routes/users.js
+import { Router } from 'express';
+import { getMe } from '../controllers/users.js';
 
 const router = Router();
 
-router.use(auth);
-router.get("/me", getMe);
-router.patch("/me", updateMe);
+// auth middleware is applied app-wide in app.js BEFORE this router
+router.get('/me', getMe);
 
 export default router;

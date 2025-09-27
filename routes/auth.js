@@ -1,3 +1,4 @@
+// routes/auth.js (ESM)
 import { Router } from 'express';
 import { celebrate, Joi, Segments } from 'celebrate';
 import { signin, signup } from '../controllers/auth.js';
@@ -8,13 +9,12 @@ router.post(
   '/signup',
   celebrate({
     [Segments.BODY]: Joi.object({
-      name: Joi.string().min(2).max(30).required(),
+      name: Joi.string().min(1).max(100).required(),
       email: Joi.string().email().required(),
       password: Joi.string().min(8).required(),
-      avatar: Joi.string().uri().optional(),
     }),
   }),
-  signup,
+  signup
 );
 
 router.post(
@@ -25,7 +25,7 @@ router.post(
       password: Joi.string().min(8).required(),
     }),
   }),
-  signin,
+  signin
 );
 
 export default router;
