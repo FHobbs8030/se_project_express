@@ -1,21 +1,17 @@
-﻿import User from "../models/user.js";
-
+﻿// controllers/users.js
 export async function getMe(req, res, next) {
   try {
-    const me = await User.findById(req.user._id).lean();
-    if (!me) return res.status(404).send({ message: "User not found" });
-    res.send({ _id: me._id, name: me.name, email: me.email, avatar: me.avatar });
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).send({ message: 'User not found' });
+    res.send(user);
   } catch (e) { next(e); }
 }
 
-export async function updateMe(req, res, next) {
-  try {
-    const { name, avatar } = req.body;
-    const update = {};
-    if (name != null) update.name = name;
-    if (avatar != null) update.avatar = avatar;
-    const user = await User.findByIdAndUpdate(req.user._id, update, { new: true }).lean();
-    if (!user) return res.status(404).send({ message: "User not found" });
-    res.send({ _id: user._id, name: user.name, email: user.email, avatar: user.avatar });
-  } catch (e) { next(e); }
-}
+// routes/users.js
+import { Router } from 'express';
+import auth from '../middlewares/auth.js';
+import { get } from '../controllers/users.js';
+
+const router = Router();
+router.get('/me', getMe); // auth is applied app-wide before /users
+export default router;

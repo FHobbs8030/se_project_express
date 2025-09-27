@@ -1,101 +1,57 @@
-import dotenv from "dotenv";
-import express from "express";
-import cookieParser from "cookie-parser";
-import helmet from "helmet";
-import mongoose from "mongoose";
-import path from "path";
-import { fileURLToPath } from "url";
-import cors from "cors";
-import bcrypt from "bcryptjs";
+console.log('[boot] app.js starting');
 
-import router from "./routes/index.js";
-import User from "./models/user.js";
-
+import dotenv from 'dotenv';
 dotenv.config();
 
-const { PORT = 3001, MONGO_URL = "mongodb://127.0.0.1:27017/wtwr_db" } = process.env;
+console.log('[boot] env loaded PORT=%s MONGO_URL=%s', process.env.PORT, process.env.MONGO_URL);
+
+import express from 'express';
+import mongoose from 'mongoose';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import { errors } from 'celebrate';
+
+import auth from './middlewares/auth.js';
+import authRouter from './routes/auth.js';
+import usersRouter from './routes/users.js';
+import itemsRouter from './routes/items.js';
 
 const app = express();
+const PORT = process.env.PORT || 3001;
+const MONGO_URL = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/wtwr_db';
 
-const ALLOWED_ORIGINS = ["http://localhost:5173", "http://localhost:3000"];
-
-app.use(
-  cors({
-    origin: ALLOWED_ORIGINS,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-app.options("*", cors({ origin: ALLOWED_ORIGINS, credentials: true }));
-
-app.use(
-  helmet({
-    crossOriginOpenerPolicy: { policy: "same-origin" },
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-    crossOriginEmbedderPolicy: false,
-  })
-);
-app.use(
-  helmet.contentSecurityPolicy({
-    useDefaults: true,
-    directives: {
-      "img-src": ["'self'", "data:", "http://localhost:3001"],
-    },
-  })
-);
-
+app.use(cors({ origin: ['http://localhost:5173'], credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-process.on("uncaughtException", (e) => console.error("[uncaughtException]", e));
-process.on("unhandledRejection", (e) => console.error("[unhandledRejection]", e));
+// TEMP health route (helps debugging)
+app.get('/health', (_req, res) => res.json({ ok: true }));
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+console.log('[boot] mounting public routes');
+app.use(authRouter);
 
-app.get("/health", (req, res) => res.send({ status: "ok" }));
+console.log('[boot] mounting auth middleware');
+app.use(auth);
 
-app.get("/_debug/check", async (req, res) => {
+console.log('[boot] mounting protected routes');
+app.use('/users', usersRouter);
+app.use('/items', itemsRouter);
+
+app.use(errors());
+// app.use(centralErrorHandler); // keep yours if present
+
+(async () => {
   try {
-    const email = String(req.query.email || "").toLowerCase().trim();
-    const password = String(req.query.password || "");
-    const user = await User.findOne({ email }).select("+password");
-    if (!user) return res.send({ found: false });
-    const ok = await bcrypt.compare(password, user.password);
-    res.send({ found: true, compareOK: ok, hashPrefix: user.password?.slice(0, 4) });
-  } catch (e) {
-    res.status(500).send({ error: String(e) });
+    console.log('[boot] connecting Mongo:', MONGO_URL);
+    await mongoose.connect(MONGO_URL, {
+      dbName: 'wtwr',
+      serverSelectionTimeoutMS: 5000, // fail fast instead of hanging forever
+    });
+    console.log('[boot] Mongo connected');
+    console.log('[boot] about to call app.listen on', PORT);
+    app.listen(PORT, () => console.log(`[server] listening http://localhost:${PORT}`));
+  } catch (err) {
+    console.error('[boot] Mongo connect FAILED:', err?.message || err);
+    process.exit(1);
   }
-});
-
-app.use(
-  "/images/clothes",
-  express.static(path.join(__dirname, "public", "images", "clothes"), {
-    setHeaders(res) {
-      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-    },
-  })
-);
-
-app.use("/", router);
-
-app.use((err, req, res, next) => {
-  const status = err.statusCode || 500;
-  const message = status === 500 ? "Server error" : err.message;
-  res.status(status).send({ message });
-});
-
-const server = app.listen(PORT, () => {
-  console.log(`[server] API listening on http://localhost:${PORT}`);
-  console.log("[server] connecting to Mongo:", MONGO_URL);
-});
-
-mongoose
-  .connect(MONGO_URL)
-  .then(() => console.log("[server] Mongo connected"))
-  .catch((err) => console.error("[server] Mongo connection error:", err.message));
-
-process.on("SIGINT", () => {
-  server.close(() => process.exit(0));
-});
+})();
