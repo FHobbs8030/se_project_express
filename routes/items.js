@@ -20,19 +20,31 @@ router.post(
 
 router.delete(
   '/:itemId',
-  celebrate({ [Segments.PARAMS]: Joi.object({ itemId: Joi.string().hex().length(24).required() }) }),
+  celebrate({
+    [Segments.PARAMS]: Joi.object({
+      itemId: Joi.string().hex().length(24).required(),
+    }),
+  }),
   deleteItem
 );
 
-// Only include these if you need likes
 router.put(
   '/:itemId/likes',
-  celebrate({ [Segments.PARAMS]: Joi.object({ itemId: Joi.string().hex().length(24).required() }) }),
+  celebrate({
+    [Segments.PARAMS]: Joi.object({
+      itemId: Joi.string().hex().length(24).required(),
+    }),
+  }),
   likeItem
 );
+
 router.delete(
   '/:itemId/likes',
-  celebrate({ [Segments.PARAMS]: Joi.object({ itemId: Joi.string().hex().length(24).required() }) }),
+  celebrate({
+    [Segments.PARAMS]: Joi.object({
+      itemId: Joi.string().hex().length(24).required(),
+    }),
+  }),
   unlikeItem
 );
 
