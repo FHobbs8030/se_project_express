@@ -20,6 +20,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const MONGO_URL = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/wtwr_db';
 
+app.use('/items', itemsRouter);
 app.use(cors({ origin: ['http://localhost:5173'], credentials: true }));
 app.use(express.json());
 app.use(cookieParser());

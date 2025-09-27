@@ -24,7 +24,7 @@ router.delete(
   deleteItem
 );
 
-// (only if you implemented likes)
+// Only include these if you need likes
 router.put(
   '/:itemId/likes',
   celebrate({ [Segments.PARAMS]: Joi.object({ itemId: Joi.string().hex().length(24).required() }) }),
@@ -36,4 +36,4 @@ router.delete(
   unlikeItem
 );
 
-export default router;   // <<— IMPORTANT
+export default router;
