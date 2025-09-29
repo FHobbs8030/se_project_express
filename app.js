@@ -15,27 +15,22 @@ connectDB();
 const allowedOrigin = process.env.CLIENT_ORIGIN || "*";
 app.use(
   cors({
-    origin:
-      allowedOrigin === "*"
-        ? "*"
-        : allowedOrigin.split(",").map((s) => s.trim()),
+    origin: allowedOrigin === "*" ? "*" : allowedOrigin.split(",").map((s) => s.trim()),
     credentials: true,
   })
 );
 
 app.use(express.json());
 
-app.use("/items", itemsRouter);
 app.use(authRouter);
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
 app.use(auth);
 app.use("/users", usersRouter);
+app.use("/items", itemsRouter);
 
 app.use((req, res) => res.status(404).json({ message: "Not Found" }));
-
 app.use(celebrateErrors());
-
 app.use((err, req, res, next) => {
   const status = err.statusCode || 500;
   const message = err.message || "Internal Server Error";

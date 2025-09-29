@@ -1,13 +1,6 @@
 ﻿import { Router } from "express";
-import {
-  getMe,
-  getUserById,
-  updateProfile
-} from "../controllers/users.js";
-import {
-  validateUserIdParam,
-  validateUpdateProfile
-} from "../utils/validators.js";
+import { getMe, getUserById, updateProfile } from "../controllers/users.js";
+import { validateUserIdParam, validateUpdateProfile } from "../utils/validators.js";
 
 const router = Router();
 

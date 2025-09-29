@@ -1,15 +1,6 @@
 ﻿import { Router } from "express";
-import {
-  getItems,
-  createItem,
-  deleteItem,
-  likeItem,
-  unlikeItem
-} from "../controllers/clothes.js";
-import {
-  validateCreateItem,
-  validateItemIdParam
-} from "../utils/validators.js";
+import { validateCreateItem, validateItemIdParam } from "../utils/validators.js";
+import { getItems, createItem, deleteItem, likeItem, unlikeItem } from "../controllers/clothes.js";
 
 const router = Router();
 

@@ -1,28 +1,8 @@
-﻿// controllers/users.js
-import User from "../models/user.js";
+﻿import User from "../models/user.js";
 
-/**
- * GET /users/me
- * Requires auth middleware to set req.user._id
- */
 export async function getMe(req, res, next) {
   try {
-    const userId = req.user?._id;
-    const me = await User.findById(userId).select("-password");
-    if (!me) return res.status(404).json({ message: "User not found" });
-    res.json(me);
-  } catch (err) {
-    next(err);
-  }
-}
-
-/**
- * GET /users/:userId
- */
-export async function getUserById(req, res, next) {
-  try {
-    const { userId } = req.params;
-    const user = await User.findById(userId).select("-password");
+    const user = await User.findById(req.user?._id).select("-password");
     if (!user) return res.status(404).json({ message: "User not found" });
     res.json(user);
   } catch (err) {
@@ -30,26 +10,27 @@ export async function getUserById(req, res, next) {
   }
 }
 
-/**
- * PATCH /users/me
- * Body: { name, avatar? }
- */
+export async function getUserById(req, res, next) {
+  try {
+    const user = await User.findById(req.params.userId).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function updateProfile(req, res, next) {
   try {
-    const userId = req.user?._id;
-    const { name, avatar } = req.body;
-
-    const update = { name };
-    if (typeof avatar === "string") update.avatar = avatar;
-
-    const updated = await User.findByIdAndUpdate(userId, update, {
+    const update = { name: req.body.name };
+    if (typeof req.body.avatar === "string") update.avatar = req.body.avatar;
+    const user = await User.findByIdAndUpdate(req.user?._id, update, {
       new: true,
       runValidators: true,
       select: "-password",
     });
-
-    if (!updated) return res.status(404).json({ message: "User not found" });
-    res.json(updated);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
   } catch (err) {
     next(err);
   }
