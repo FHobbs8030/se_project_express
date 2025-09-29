@@ -1,51 +1,19 @@
-﻿import { Router } from 'express';
-import { celebrate, Joi, Segments } from 'celebrate';
-import { listItems, createItem, deleteItem, likeItem, unlikeItem } from '../controllers/items.js';
+﻿import { Router } from "express";
+import auth from "../middleware/auth.js";
+import {
+  getItems,
+  createItem,
+  deleteItem,
+  likeItem,
+  unlikeItem,
+} from "../controllers/clothes.js";
 
 const router = Router();
 
-router.get('/', listItems);
-
-router.post(
-  '/',
-  celebrate({
-    [Segments.BODY]: Joi.object({
-      name: Joi.string().min(1).max(100).required(),
-      imageUrl: Joi.string().uri().required(),
-      weather: Joi.string().valid('hot', 'warm', 'cold').required(),
-    }),
-  }),
-  createItem
-);
-
-router.delete(
-  '/:itemId',
-  celebrate({
-    [Segments.PARAMS]: Joi.object({
-      itemId: Joi.string().hex().length(24).required(),
-    }),
-  }),
-  deleteItem
-);
-
-router.put(
-  '/:itemId/likes',
-  celebrate({
-    [Segments.PARAMS]: Joi.object({
-      itemId: Joi.string().hex().length(24).required(),
-    }),
-  }),
-  likeItem
-);
-
-router.delete(
-  '/:itemId/likes',
-  celebrate({
-    [Segments.PARAMS]: Joi.object({
-      itemId: Joi.string().hex().length(24).required(),
-    }),
-  }),
-  unlikeItem
-);
+router.get("/", getItems);
+router.post("/", auth, createItem);
+router.delete("/:itemId", auth, deleteItem);
+router.put("/:itemId/likes", auth, likeItem);
+router.delete("/:itemId/likes", auth, unlikeItem);
 
 export default router;

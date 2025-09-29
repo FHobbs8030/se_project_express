@@ -1,4 +1,3 @@
-// app.js
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
@@ -13,15 +12,16 @@ const app = express();
 const allowedOrigin = process.env.CLIENT_ORIGIN || "*";
 app.use(
   cors({
-    origin: allowedOrigin === "*" ? "*" : allowedOrigin.split(",").map(s => s.trim()),
+    origin: allowedOrigin === "*" ? "*" : allowedOrigin.split(",").map((s) => s.trim()),
     credentials: true,
   })
 );
 app.use(express.json());
 
-app.use("/items", itemsRouter);
 app.use(authRouter);
 app.get("/health", (req, res) => res.json({ status: "ok" }));
+
+app.use("/items", itemsRouter);
 
 app.use(auth);
 app.use("/users", usersRouter);
@@ -46,8 +46,8 @@ async function start() {
   });
 }
 
-process.on("unhandledRejection", r => console.error("[unhandledRejection]", r));
-process.on("uncaughtException", e => console.error("[uncaughtException]", e));
+process.on("unhandledRejection", (r) => console.error("[unhandledRejection]", r));
+process.on("uncaughtException", (e) => console.error("[uncaughtException]", e));
 
 start();
 
