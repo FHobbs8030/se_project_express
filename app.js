@@ -1,45 +1,44 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import { errors as celebrateErrors } from "celebrate";
+import cookieParser from "cookie-parser";
+import { errors } from "celebrate";
+
 import { connectDB } from "./utils/db.js";
+import authRouter from "./routes/auth.js";
 import itemsRouter from "./routes/items.js";
 import usersRouter from "./routes/users.js";
-import authRouter from "./routes/auth.js";
-import auth from "./middleware/auth.js";
+import auth from "./middlewares/auth.js";
 
 const app = express();
 
-connectDB();
-
-const allowedOrigin = process.env.CLIENT_ORIGIN || "*";
 app.use(
   cors({
-    origin: allowedOrigin === "*" ? "*" : allowedOrigin.split(",").map((s) => s.trim()),
+    origin:
+      (process.env.CLIENT_ORIGIN || "*") === "*"
+        ? "*"
+        : process.env.CLIENT_ORIGIN.split(",").map((s) => s.trim()),
     credentials: true,
   })
 );
-
 app.use(express.json());
+app.use(cookieParser());
 
-app.use(authRouter);
 app.get("/health", (req, res) => res.json({ status: "ok" }));
-
+app.use(authRouter);
 app.use(auth);
-app.use("/users", usersRouter);
 app.use("/items", itemsRouter);
+app.use("/users", usersRouter);
 
 app.use((req, res) => res.status(404).json({ message: "Not Found" }));
-app.use(celebrateErrors());
+app.use(errors());
 app.use((err, req, res, next) => {
   const status = err.statusCode || 500;
   const message = err.message || "Internal Server Error";
   res.status(status).json({ message });
 });
 
-const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => {
-  console.log(`API listening on port ${PORT}`);
+const port = process.env.PORT || 3001;
+connectDB().then(() => {
+  app.listen(port, () => console.log(`API listening on ${port}`));
 });
-
-export default app;

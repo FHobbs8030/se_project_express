@@ -1,15 +1,14 @@
 ﻿import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema(
   {
-    name: { type: String, minlength: 2, maxlength: 30, required: true },
-    email: { type: String, required: true, unique: true },
+    name: { type: String, required: true, minlength: 2, maxlength: 30 },
+    email: { type: String, required: true, unique: true, index: true },
     password: { type: String, required: true, select: false },
     avatar: { type: String, default: "" },
+    createdAt: { type: Date, default: Date.now }
   },
-  { timestamps: true }
+  { versionKey: false }
 );
-userSchema.index({ email: 1 }, { unique: true });
 
 export default mongoose.model("User", userSchema);

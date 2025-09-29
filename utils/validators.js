@@ -1,5 +1,4 @@
 import { celebrate, Joi } from "celebrate";
-
 const objectId = () => Joi.string().hex().length(24).required();
 
 const relativeOrHttpUrl = Joi.string()
@@ -19,7 +18,7 @@ export const validateSignin = celebrate({
   body: Joi.object({
     email: Joi.string().email().required(),
     password: Joi.string().min(8).required(),
-  }).unknown(false),
+  })
 });
 
 export const validateUserIdParam = celebrate({

@@ -4,8 +4,7 @@ import { signup, signin } from "../controllers/auth.js";
 
 const router = Router();
 
-const relativeOrHttpUrl = Joi.string()
-  .pattern(/^(https?:\/\/.+)|(\/[A-Za-z0-9._\-\/]+)$/); // optional avatar
+const relativeOrHttpUrl = Joi.string().pattern(/^(https?:\/\/.+)|(\/[A-Za-z0-9._\-\/]+)$/);
 
 router.post(
   "/signup",
@@ -14,8 +13,8 @@ router.post(
       name: Joi.string().min(2).max(30).required(),
       email: Joi.string().email().required(),
       password: Joi.string().min(8).required(),
-      avatar: relativeOrHttpUrl.optional(),
-    }),
+      avatar: relativeOrHttpUrl.optional()
+    })
   }),
   signup
 );
@@ -25,8 +24,8 @@ router.post(
   celebrate({
     body: Joi.object({
       email: Joi.string().email().required(),
-      password: Joi.string().min(8).required(),
-    }),
+      password: Joi.string().min(8).required()
+    })
   }),
   signin
 );

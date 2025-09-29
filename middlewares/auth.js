@@ -1,20 +1,21 @@
 import jwt from "jsonwebtoken";
 
-const { JWT_SECRET = "dev-super-secret-change-me" } = process.env;
-
 export default function auth(req, res, next) {
-  const { authorization = "" } = req.headers;
-  const parts = authorization.split(" ");
-  const isBearer = parts.length === 2 && parts[0] === "Bearer";
-  if (!isBearer) {
-    return res.status(401).json({ message: "Authorization required" });
-  }
-
   try {
-    const payload = jwt.verify(parts[1], JWT_SECRET);
-    req.user = payload;
-    return next();
-  } catch {
-    return res.status(401).json({ message: "Authorization required" });
+    const header = req.headers.authorization || "";
+    const bearer = header.startsWith("Bearer ") ? header.slice(7) : null;
+    const cookieToken = req.cookies?.jwt || null;
+    const token = bearer || cookieToken;
+    if (!token) {
+      const e = new Error("Authorization required");
+      e.statusCode = 401;
+      throw e;
+    }
+    const payload = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = { _id: payload._id };
+    next();
+  } catch (err) {
+    if (!err.statusCode) err.statusCode = 401;
+    next(err);
   }
 }
