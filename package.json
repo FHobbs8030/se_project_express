@@ -10,7 +10,9 @@
     "lint": "eslint . --ext .js,.cjs,.mjs",
     "lint:fix": "eslint . --ext .js,.cjs,.mjs --fix",
     "seed": "node scripts/seed.js",
-    "ensure:index": "node scripts/ensure-email-unique-index.js"
+    "ensure:index": "node scripts/ensure-email-unique-index.js",
+    "test:api": "newman run WTWR_API.postman_collection.json -e WTWR-Local.postman_environment.json --reporters cli,htmlextra --reporter-htmlextra-export newman/wtwr-sprint14.html --reporter-htmlextra-title \"WTWR Sprint 14 - API Tests\""
+
   },
   "repository": {
     "type": "git",
@@ -32,6 +34,8 @@
     "eslint-config-prettier": "^9.1.2",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^4.2.1",
+    "newman": "^6.2.1",
+    "newman-reporter-htmlextra": "^1.23.1",
     "nodemon": "^3.1.0",
     "prettier": "^3.6.2"
   },
