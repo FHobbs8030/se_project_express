@@ -51,3 +51,10 @@ export async function signin(req, res, next) {
     next(err);
   }
 }
+
+export async function signout(req, res, next) {
+  try {
+    res.clearCookie("jwt", { httpOnly: true, sameSite: "lax" });
+    res.status(204).send();
+  } catch (err) { next(err); }
+}

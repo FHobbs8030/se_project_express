@@ -1,9 +1,8 @@
 ﻿import { Router } from "express";
 import { celebrate, Joi } from "celebrate";
-import { signup, signin } from "../controllers/auth.js";
+import { signup, signin, signout } from "../controllers/auth.js";
 
 const router = Router();
-
 const relativeOrHttpUrl = Joi.string().pattern(/^(https?:\/\/.+)|(\/[A-Za-z0-9._\-\/]+)$/);
 
 router.post(
@@ -29,5 +28,7 @@ router.post(
   }),
   signin
 );
+
+router.post("/signout", signout);
 
 export default router;

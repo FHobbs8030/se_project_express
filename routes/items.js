@@ -1,19 +1,16 @@
-﻿import { Router } from "express";
-import { celebrate, Joi } from "celebrate";
-import { createItem } from "../controllers/items.js";
+﻿// routes/items.js
+import { Router } from "express";
+import {
+  getItems, createItem, deleteItem, likeItem, unlikeItem
+} from "../controllers/items.js";
+import { validateCreateItem, validateItemIdParam } from "../utils/validators.js";
 
 const router = Router();
 
-router.post(
-  "/",
-  celebrate({
-    body: Joi.object({
-      name: Joi.string().min(2).max(30).required(),
-      weather: Joi.string().valid("hot", "warm", "cold").required(),
-      imageUrl: Joi.string().required()
-    })
-  }),
-  createItem
-);
+router.get("/", getItems);
+router.post("/", validateCreateItem, createItem);
+router.delete("/:itemId", validateItemIdParam, deleteItem);
+router.put("/:itemId/likes", validateItemIdParam, likeItem);
+router.delete("/:itemId/likes", validateItemIdParam, unlikeItem);
 
 export default router;

@@ -37,7 +37,7 @@ export const validateUpdateProfile = celebrate({
 export const validateCreateItem = celebrate({
   body: Joi.object({
     name: Joi.string().min(2).max(30).required(),
-    weather: Joi.string().valid("warm", "cool", "cold").required(),
+    weather: Joi.string().valid("hot", "warm", "cold").required(),
     imageUrl: relativeOrHttpUrl,
   }).unknown(false),
 });
