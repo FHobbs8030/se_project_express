@@ -1,218 +1,218 @@
-# WTWR API — Sprint 13 (Express + MongoDB)
+# WTWR Backend (Sprint 14)
 
-A Node.js/Express REST API for **What To Wear? (WTWR)** with MongoDB/Mongoose, JWT authentication, protected routes, and robust validation. This repository reflects **Sprint‑13** requirements.
+This is the **backend API** for the WTWR (What To Wear) application, built with **Express** and **MongoDB**.  
+It provides user authentication, profile management, and CRUD operations for clothing items.
 
 ---
 
-## Quick Start
+## 🚀 Features
+
+- JWT authentication with signup, signin, and signout
+- User profile routes: get current user, get user by ID, update profile
+- Clothing item routes: create, list, like/unlike, delete (owner only)
+- Input validation with **Celebrate/Joi**
+- Centralized error handling
+- CORS with configurable client origin
+- Environment-based configuration
+- Health check endpoint `GET /health`
+
+---
+
+## 📦 Tech Stack
+
+- Node.js / Express
+- MongoDB + Mongoose
+- Celebrate / Joi (validation)
+- bcryptjs (password hashing)
+- jsonwebtoken (JWT auth)
+- dotenv (environment config)
+- cors, cookie-parser
+- nodemon (dev)
+
+---
+
+## ⚙️ Setup
+
+### Prerequisites
+
+- Node.js v18+
+- MongoDB (local or Atlas)
+- Postman (desktop app or web + Desktop Agent)
+
+### Installation
 
 ```bash
-# 1) Install
+git clone <repo-url>
+cd se_project_express
 npm install
-
-# 2) Environment
-# .env (example)
-# PORT=3001
-# MONGO_URL=mongodb://localhost:27017/wtwr_db
-# CORS_ORIGIN=http://localhost:5173,http://localhost:3000
-
-# 3) Dev server
-npm run dev
-# Server: http://localhost:3001
 ```
 
-**Health check:** `GET /` → `{ "service": "WTWR API", "status": "ok" }`  
-**Public endpoint:** `GET /items` (all other /items & /users routes require JWT).
+### Environment Variables
 
----
+Create a `.env` file in the root:
 
-## Scripts
-
-- `npm start` – start server
-- `npm run dev` – dev with nodemon
-- `npm run lint` – run ESLint (Airbnb base) and Prettier
-
----
-
-## Tech Stack
-
-- **Node.js**, **Express**
-- **MongoDB**, **Mongoose**
-- **JWT** (`jsonwebtoken`), **bcrypt**
-- **validator** (URLs/emails)
-- **CORS**, **dotenv**
-- **ESLint (airbnb-base)** + **Prettier**
-
----
-
-## CORS
-
-Allowlist is configurable via `CORS_ORIGIN` (comma-separated). Non‑browser clients (no Origin) are allowed.
-
-```env
-CORS_ORIGIN=http://localhost:5173,http://localhost:3000
+```ini
+PORT=3001
+MONGO_URL=mongodb://127.0.0.1:27017/wtwr
+JWT_SECRET=supersecretjwt
+CLIENT_ORIGIN=http://localhost:5173
 ```
 
----
-
-## Data Models
-
-### User (`user`)
-| Field | Type | Rules |
-| --- | --- | --- |
-| `name` | String | required, 2–30 |
-| `avatar` | String | required, valid URL |
-| `email` | String | required, **unique**, valid email |
-| `password` | String | required, `select:false` |
-| `createdAt` | Date | default `Date.now`, required |
-
-**Note:** A **single** unique index on `email` is defined (no duplicates).
-
-### Clothing Item (`clothingItem`)
-| Field | Type | Rules |
-| --- | --- | --- |
-| `name` | String | required, 2–30 |
-| `weather` | String | required, enum: `hot` \| `warm` \| `cold` |
-| `imageUrl` | String | required, valid URL |
-| `owner` | ObjectId → `user` | required |
-| `likes` | ObjectId[] → `user` | required, default `[]` |
-| `createdAt` | Date | default `Date.now`, required |
-
-Populate is configured so responses include **owner** and **likes** as user sub‑documents (selected fields).
+> Make sure `CLIENT_ORIGIN` matches your frontend origin(s).
 
 ---
 
-## Auth & JWT
+## ▶️ Running
 
-- `POST /signup` – creates a user (`name`, `email`, `password`, `avatar`)
-- `POST /signin` – returns `{ token }` (JWT with 7d expiry)
-- Send token as `Authorization: Bearer <token>`
+Start the server:
 
-Passwords are hashed on signup; password field is never returned by the API.
-
----
-
-## Routes
-
-### Public
-- `GET /` → health JSON
-- `GET /items` → list items (populated owner/likes)
-
-### Protected (JWT required)
-**Users**
-- `GET /users/me` – current user
-- `PATCH /users/me` – update profile (uses `{ new:true, runValidators:true }`)
-
-**Items**
-- `POST /items` – create (server sets `owner` from token)
-- `DELETE /items/:id` – only owner can delete (403 otherwise)
-- `PUT /items/:id/likes` – like (returns populated item)
-- `DELETE /items/:id/likes` – unlike (returns populated item)
-
----
-
-## Error Model & Status Codes
-
-All errors return JSON: `{ "message": "…" }`
-
-| Status | When |
-| --- | --- |
-| **400** | Validation error or invalid `ObjectId` (CastError) |
-| **401** | Missing/invalid/expired token |
-| **403** | Forbidden (e.g., delete not owner) |
-| **404** | Resource not found or route missing |
-| **409** | Email already exists on signup |
-| **500** | Default server error (“An error has occurred on the server.”) |
-
----
-
-## Smoke Tests
-
-### PowerShell (Windows)
-```powershell
-$base = 'http://localhost:3001'
-
-# Create/login user A
-$signupA = @{ name="Fred"; email="fred@example.com"; password="Passw0rd!"; avatar="https://example.com/a.png" } | ConvertTo-Json
-try { irm -Method POST "$base/signup" -ContentType 'application/json' -Body $signupA | Out-Null } catch {}
-$loginA = @{ email="fred@example.com"; password="Passw0rd!" } | ConvertTo-Json
-$tokenA = (irm -Method POST "$base/signin" -ContentType 'application/json' -Body $loginA).token
-$hdrA = @{ Authorization = "Bearer $tokenA" }
-
-# Public route
-irm "$base/items" | Out-Null
-
-# Create & like (populated)
-$new = @{ name='Demo Jacket'; weather='cold'; imageUrl='https://example.com/j.png' } | ConvertTo-Json
-$item = irm -Method POST "$base/items" -Headers $hdrA -ContentType 'application/json' -Body $new
-irm -Method PUT "$base/items/$($item._id)/likes" -Headers $hdrA | ConvertTo-Json -Depth 6
-
-# Create user B to test 403
-$signupB = @{ name="Tester"; email="tester@example.com"; password="Passw0rd!"; avatar="https://example.com/b.png" } | ConvertTo-Json
-try { irm -Method POST "$base/signup" -ContentType 'application/json' -Body $signupB | Out-Null } catch {}
-$loginB = @{ email="tester@example.com"; password="Passw0rd!" } | ConvertTo-Json
-$tokenB = (irm -Method POST "$base/signin" -ContentType 'application/json' -Body $loginB).token
-$hdrB = @{ Authorization = "Bearer $tokenB" }
-
-# Try to delete as non-owner → 403; delete as owner → 200
-try { irm -Method DELETE "$base/items/$($item._id)" -Headers $hdrB } catch { $_.Exception.Response.StatusCode.value__ }
-irm -Method DELETE "$base/items/$($item._id)" -Headers $hdrA
-```
-
-### curl (macOS/Linux)
 ```bash
-BASE=http://localhost:3001
-curl -s -X POST $BASE/signup -H "Content-Type: application/json"   -d '{"name":"Demo","email":"demo@example.com","password":"Passw0rd!","avatar":"https://example.com/a.png"}' >/dev/null
-
-TOKEN=$(curl -s -X POST $BASE/signin -H "Content-Type: application/json"   -d '{"email":"demo@example.com","password":"Passw0rd!"}' | jq -r .token)
-
-curl -s $BASE/items >/dev/null  # public
-
-ITEM=$(curl -s -X POST $BASE/items -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json"   -d '{"name":"Demo Jacket","weather":"cold","imageUrl":"https://example.com/j.png"}' | jq -r ._id)
-
-curl -s -X PUT $BASE/items/$ITEM/likes -H "Authorization: Bearer $TOKEN" | jq
+npm run dev    # nodemon
+# or
+npm start
 ```
 
-**Expected:** Responses include populated `owner` and `likes` objects.
+Sanity check (HTTP request and expected JSON response):
 
----
-
-## Repo Structure (key parts)
-
+```http
+GET /health HTTP/1.1
+Host: localhost:3001
 ```
-.
-├─ app.js
-├─ controllers/
-│  ├─ auth.js
-│  ├─ items.js      # populate owner & likes
-│  └─ users.js
-├─ middlewares/
-│  └─ auth.js       # verifies JWT, sets req.user
-├─ models/
-│  ├─ user.js            # model name: 'user'
-│  └─ clothingItem.js    # model name: 'clothingItem', refs 'user'
-├─ routes/
-│  ├─ items.js
-│  └─ users.js
-├─ utils/
-│  └─ constants.js  # status codes
-├─ .editorconfig
-├─ .eslintrc.cjs    # extends airbnb-base (with _id allowance)
-├─ .prettierrc
-├─ .gitignore
-└─ README.md
+
+```json
+{ "status": "ok" }
 ```
 
 ---
 
-## Notes
+## 📡 API Endpoints
 
-- Seed items from previous sprints may lack `owner`; new items created via authenticated POST will include `owner` and populate correctly.
-- Duplicate email conflicts are mapped to **409**.
-- Linting uses Airbnb base; the codebase avoids inline `eslint-disable` directives.
+### Auth
+
+- `POST /signup` → Create user  
+  **Body**:
+
+  ```json
+  { "name": "Fred", "email": "fred@example.com", "password": "Password123!", "avatar": "/images/clothes/Avatar.png" }
+  ```
+
+- `POST /signin` → Returns `{ "token": "..." }` and sets `jwt` cookie
+- `POST /signout` → Clears cookie
+
+### Users (Auth required)
+
+- `GET /users/me`
+- `GET /users/:userId`
+- `PATCH /users/me`  
+  **Body**:
+
+  ```json
+  { "name": "Fred Updated", "avatar": "/images/clothes/Avatar.png" }
+  ```
+
+### Items (Auth required)
+
+- `GET /items`
+- `POST /items` → Create item  
+  **Body**:
+
+  ```json
+  { "name": "T-shirt", "weather": "warm", "imageUrl": "/images/clothes/T-shirt.png" }
+  ```
+
+- `PUT /items/:itemId/likes` → Like
+- `DELETE /items/:itemId/likes` → Unlike
+- `DELETE /items/:itemId` → Delete (owner only)
 
 ---
 
-## License
+## ✅ Validation Rules
 
-MIT (for educational use in TripleTen’s curriculum).
+- `name`: string, 2–30 chars
+- `email`: valid email
+- `password`: min 8 chars
+- `avatar`: valid URL (absolute `https://...` or relative `/images/...`) — **omit** if empty
+- `weather`: one of `hot | warm | cold`
+- `imageUrl`: valid URL (absolute or `/images/...`)
+
+> Celebrate/Joi is used for all route validation. Errors are returned as `{ "message": "<details>" }` with proper status codes.
+
+---
+
+## 🧪 Testing with Postman
+
+### Import Test Assets
+
+Include these files in the repo root (or `/docs`):
+
+- `WTWR_Sprint14.postman_collection.json`
+- `WTWR-Local.postman_environment.json`
+
+### How to Run
+
+1. Import both files into Postman.
+2. Select the **WTWR–Local** environment (top-right).
+3. Start backend (`npm run dev`).
+4. **Run Collection** → executes: Signup → Signin → Users (me/by id/patch) → Items (create/list/like/unlike/delete) → Signout.
+
+#### Common Pitfalls
+
+- **400 on `/signup`** → `avatar` cannot be empty; remove the field or set a valid URL.  
+- **409 on `/signup`** → email already exists; change `email` to something unique (e.g., `fred+<timestamp>@example.com`).  
+- **401 on `/users` or `/items`** → token missing/invalid; run Signin first.  
+- **403 on `/items/:id` delete** → you can only delete items you own.  
+- **400 on `/items` create** → `weather` must be `hot|warm|cold`; `imageUrl` must be absolute or `/images/...`.
+
+> Tip: In the Postman Console (**View → Show Postman Console**), you can inspect the exact request body and variables used.
+
+---
+
+## 📊 Newman Test Reports (optional but recommended)
+
+Install:
+
+```bash
+npm i -D newman newman-reporter-htmlextra
+```
+
+Run:
+
+```bash
+npx newman run "WTWR_Sprint14.postman_collection.json"   -e "WTWR-Local.postman_environment.json"   --reporters cli,htmlextra   --reporter-htmlextra-export ./newman/wtwr-sprint14.html   --reporter-htmlextra-title "WTWR Sprint 14 - API Tests"
+```
+
+Open `./newman/wtwr-sprint14.html` in your browser.
+
+Add a script to `package.json`:
+
+```json
+"scripts": {
+  "test:api": "newman run WTWR_Sprint14.postman_collection.json -e WTWR-Local.postman_environment.json --reporters cli,htmlextra --reporter-htmlextra-export ./newman/wtwr-sprint14.html --reporter-htmlextra-title 'WTWR Sprint 14 - API Tests'"
+}
+```
+
+---
+
+## 📁 Useful NPM Scripts
+
+- `npm run dev` → Run with nodemon
+- `npm start` → Start server
+- `npm run seed` → Seed items into DB (if included)
+- `npm run lint` → Run ESLint
+- `npm run test:api` → Run Postman/Newman tests (after adding the script above)
+
+---
+
+## 🎯 Sprint 14 Completion
+
+- All Postman tests (**20/20**) pass: Auth, Users, Items, Likes, Owner Delete, Validation.  
+- Backend is **100% complete** for Sprint 14.
+
+---
+
+## 🔒 Security & Production Notes (optional hardening)
+
+- Store strong `JWT_SECRET` and secure it in production.
+- Set `COOKIE_SECURE=true` and serve over HTTPS in prod.
+- Consider adding rate limiting and security headers (helmet).
+- Validate CORS origins carefully in `CLIENT_ORIGIN`.
