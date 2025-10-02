@@ -2,6 +2,8 @@
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 
+const { JWT_SECRET = "dev_secret" } = process.env;
+
 export async function signup(req, res, next) {
   try {
     const { name, email, password, avatar } = req.body;
@@ -18,7 +20,7 @@ export async function signup(req, res, next) {
       name: user.name,
       email: user.email,
       avatar: user.avatar,
-      createdAt: user.createdAt
+      createdAt: user.createdAt,
     });
   } catch (err) {
     if (!err.statusCode) err.statusCode = 400;
@@ -41,9 +43,15 @@ export async function signin(req, res, next) {
       e.statusCode = 401;
       throw e;
     }
-    const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: "7d" });
     res
-      .cookie("jwt", token, { httpOnly: true, sameSite: "lax", maxAge: 7 * 24 * 60 * 60 * 1000 })
+      .cookie("jwt", token, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: false,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: "/",
+      })
       .status(200)
       .json({ token });
   } catch (err) {
@@ -54,7 +62,9 @@ export async function signin(req, res, next) {
 
 export async function signout(req, res, next) {
   try {
-    res.clearCookie("jwt", { httpOnly: true, sameSite: "lax" });
+    res.clearCookie("jwt", { httpOnly: true, sameSite: "lax", path: "/" });
     res.status(204).send();
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 }

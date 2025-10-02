@@ -2,14 +2,18 @@
 const { JWT_SECRET = "dev_secret" } = process.env;
 
 export default function auth(req, res, next) {
-  const header = req.headers.authorization || "";
-  const [, token] = header.split(" ");
+  const bearer = req.headers.authorization?.startsWith("Bearer ")
+    ? req.headers.authorization.slice(7)
+    : null;
+  const token = req.cookies?.jwt || bearer;
+
   if (!token) return res.status(401).json({ message: "Authorization required" });
+
   try {
     const payload = jwt.verify(token, JWT_SECRET);
     req.user = { _id: payload._id };
-    next();
+    return next();
   } catch {
-    res.status(401).json({ message: "Invalid token" });
+    return res.status(401).json({ message: "Invalid token" });
   }
 }

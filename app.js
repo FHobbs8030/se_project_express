@@ -3,7 +3,6 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { errors } from "celebrate";
-
 import { connectDB } from "./utils/db.js";
 import authRouter from "./routes/auth.js";
 import itemsRouter from "./routes/items.js";
@@ -12,15 +11,12 @@ import auth from "./middlewares/auth.js";
 
 const app = express();
 
-app.use(
-  cors({
-    origin:
-      (process.env.CLIENT_ORIGIN || "*") === "*"
-        ? "*"
-        : process.env.CLIENT_ORIGIN.split(",").map((s) => s.trim()),
-    credentials: true,
-  })
-);
+const allowedOrigins = process.env.CLIENT_ORIGIN
+  ? process.env.CLIENT_ORIGIN.split(",").map(s => s.trim())
+  : ["http://localhost:5173"];
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -39,6 +35,4 @@ app.use((err, req, res, next) => {
 });
 
 const port = process.env.PORT || 3001;
-connectDB().then(() => {
-  app.listen(port, () => console.log(`API listening on ${port}`));
-});
+connectDB().then(() => app.listen(port, () => console.log(`API listening on ${port}`)));
