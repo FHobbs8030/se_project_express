@@ -1,0 +1,245 @@
+{
+  "info": {
+    "name": "WTWR API (fixed)",
+    "_postman_id": "f0b8c0de-0000-4d00-9000-000000wtwrcoll",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/health", "host": ["{{base_url}}"], "path": ["health"] }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Health OK\", () => {",
+              "  pm.expect(pm.response.code).to.eql(200);",
+              "  pm.expect(pm.response.json().status).to.eql(\"ok\");",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Signup",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/signup", "host": ["{{base_url}}"], "path": ["signup"] },
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Fred\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}" }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const ts = Date.now();",
+              "pm.environment.set('email', `fred+${ts}@example.com`);",
+              "pm.environment.set('password', pm.environment.get('password') || 'Password123!');"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Signup success\", function () {",
+              "  pm.expect([200,201,409]).to.include(pm.response.code);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Signin",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/signin", "host": ["{{base_url}}"], "path": ["signin"] },
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}" }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "let json = {};",
+              "try { json = pm.response.json(); } catch (e) {}",
+              "const token = (json && (json.token || json.jwt)) || null;",
+              "const cookie = pm.cookies.get('jwt');",
+              "pm.test(\"Signin OK\", function () { pm.expect([200,201]).to.include(pm.response.code); });",
+              "pm.test(\"JWT present (body or cookie)\", function () { pm.expect(token || cookie, \"no jwt in body or cookie\").to.exist; });",
+              "if (token) pm.environment.set('token', token);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get Me",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": { "raw": "{{base_url}}/users/me", "host": ["{{base_url}}"], "path": ["users", "me"] }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Authorized\", () => pm.expect(pm.response.code).to.eql(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Item (relative image)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/items", "host": ["{{base_url}}"], "path": ["items"] },
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Hoodie\",\n  \"weather\": \"cold\",\n  \"imageUrl\": \"/images/clothes/hoodie.png\"\n}" }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "let json = {};",
+              "try { json = pm.response.json(); } catch(e) {}",
+              "const id = json._id || (json.data && json.data._id) || (json.item && json.item._id);",
+              "pm.test(\"Created item\", function () { pm.expect([200,201]).to.include(pm.response.code); });",
+              "pm.test(\"Has _id\", function () { pm.expect(id, \"no _id in response\").to.exist; });",
+              "pm.environment.set(\"itemId\", id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Item (https image)",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/items", "host": ["{{base_url}}"], "path": ["items"] },
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Sneakers\",\n  \"weather\": \"warm\",\n  \"imageUrl\": \"https://example.com/sneakers.png\"\n}" }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Created item\", function () { pm.expect([200,201]).to.include(pm.response.code); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Item [INVALID weather]",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/items", "host": ["{{base_url}}"], "path": ["items"] },
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Coat\",\n  \"weather\": \"cool\",\n  \"imageUrl\": \"/images/clothes/coat.png\"\n}" }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Validation error (400)\", () => pm.expect(pm.response.code).to.eql(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create Item [INVALID name too short]",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{base_url}}/items", "host": ["{{base_url}}"], "path": ["items"] },
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"A\",\n  \"weather\": \"cold\",\n  \"imageUrl\": \"/images/clothes/coat.png\"\n}" }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Validation error (400)\", () => pm.expect(pm.response.code).to.eql(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delete Item [INVALID id]",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{base_url}}/items/notAValidId123", "host": ["{{base_url}}"], "path": ["items", "notAValidId123"] }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Rejects invalid ObjectId\", () => {",
+              "  pm.expect([400, 404]).to.include(pm.response.code);",
+              "});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delete Item by {{itemId}}",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": { "raw": "{{base_url}}/items/{{itemId}}", "host": ["{{base_url}}"], "path": ["items", "{{itemId}}"] }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const t = pm.environment.get('token');",
+          "if (t) { pm.request.headers.upsert({ key: 'Authorization', value: `Bearer ${t}` }); }"
+        ]
+      }
+    }
+  ]
+}

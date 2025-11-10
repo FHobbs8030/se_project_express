@@ -1,0 +1,4 @@
+// se_project_express/.eslintignore
+node_modules
+dist
+coverage

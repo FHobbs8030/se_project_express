@@ -1,0 +1,52 @@
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Build & cache
+dist/
+build/
+tmp/
+temp/
+.cache/
+.parcel-cache/
+
+# Dependencies & npm cache
+node_modules/
+.npm/
+
+# Lint cache
+.eslintcache
+
+# Environment files (keep only the example in git)
+.env
+.env.*
+!.env.example
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Archives
+*.zip
+
+# Optional: uploads or temp storage
+uploads/
+
+# session cookies
+cookies.txt

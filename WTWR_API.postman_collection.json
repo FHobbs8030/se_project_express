@@ -1,0 +1,43 @@
+{
+  "name": "Signup",
+  "request": {
+    "method": "POST",
+    "header": [
+      { "key": "Content-Type", "value": "application/json" }
+    ],
+    "url": {
+      "raw": "{{base_url}}/signup",
+      "host": ["{{base_url}}"],
+      "path": ["signup"]
+    },
+    "body": {
+      "mode": "raw",
+      "raw": "{\n  \"name\": \"Fred\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+    }
+  },
+  "response": [],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const ts = Date.now();",
+          "pm.environment.set('email', `fred+${ts}@example.com`);",
+          "pm.environment.set('password', pm.environment.get('password') || 'Password123!');"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test(\"Signup success\", function () {",
+          "  pm.expect([200,201]).to.include(pm.response.code);",
+          "});"
+        ]
+      }
+    }
+  ]
+}
