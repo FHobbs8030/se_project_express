@@ -1,12 +1,11 @@
-﻿import { Router } from 'express';
-import auth from '../middleware/auth.js';
-import { signup, signin, getMe, signout } from '../controllers/users.js';
+﻿import { Router } from "express";
+import { getCurrentUser, getUserById, updateProfile } from "../controllers/users.js";
+import validateObjectId from "../middlewares/validateObjectId.js";
 
 const router = Router();
 
-router.post('/signup', signup);
-router.post('/signin', signin);
-router.get('/users/me', auth, getMe);
-router.post('/users/signout', auth, signout);
+router.get("/me", getCurrentUser);
+router.get("/:userId", validateObjectId, getUserById);
+router.patch("/me", updateProfile);
 
 export default router;
