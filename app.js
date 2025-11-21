@@ -36,9 +36,11 @@ const corsOptions = {
     return cb(new Error('Not allowed by CORS'));
   },
   credentials: true,
+  optionsSuccessStatus: 200,
 };
 
-app.set('trust proxy', 1);
+app.set('trust proxy', NODE_ENV === 'production');
+
 app.use(helmet());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 300 }));
 app.use(cors(corsOptions));
