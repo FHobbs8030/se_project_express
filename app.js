@@ -16,12 +16,7 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const {
-  PORT = 3001,
-  MONGO_URL = 'mongodb://127.0.0.1:27017/wtwr',
-  NODE_ENV = 'development',
-  CORS_ORIGINS = '',
-} = process.env;
+const { PORT = 3001, MONGO_URL = 'mongodb://127.0.0.1:27017/wtwr', NODE_ENV = 'development', CORS_ORIGINS = '' } = process.env;
 
 const allowedOrigins = [
   'http://localhost:5173',
@@ -30,7 +25,9 @@ const allowedOrigins = [
   'http://127.0.0.1:5174',
   'http://localhost:5175',
   'http://127.0.0.1:5175',
-  ...CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean),
+  ...CORS_ORIGINS.split(',')
+    .map(o => o.trim())
+    .filter(Boolean),
 ];
 
 const corsOptions = {
@@ -48,7 +45,12 @@ app.set('trust proxy', NODE_ENV === 'production');
 
 app.use(helmet());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 300 }));
-app.use(cors(corsOptions));
+app.use(
+  cors({
+    origin: ['http://localhost:5175'],
+    credentials: true,
+  })
+);
 app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 app.use(morgan(NODE_ENV === 'production' ? 'combined' : 'dev'));
@@ -77,7 +79,7 @@ mongoose
     console.log('MongoDB connected');
     app.listen(PORT, '0.0.0.0', () => console.log(`API listening on ${PORT}`));
   })
-  .catch((err) => {
+  .catch(err => {
     console.error('Mongo connection error:', err);
     process.exit(1);
   });
