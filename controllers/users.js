@@ -1,10 +1,10 @@
 ﻿import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
-import BadRequestError from '../utils/errors/BadRequestError.js';
 import ConflictError from '../utils/errors/ConflictError.js';
 import UnauthorizedError from '../utils/errors/UnauthorizedError.js';
-import NotFoundError from '../utils/errors/NotFoundError.js';
+import { BadRequestError, NotFoundError } from '../utils/errors/index.js';
+
 
 const { JWT_SECRET = 'dev-secret' } = process.env;
 
