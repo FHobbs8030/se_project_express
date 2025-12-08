@@ -1,27 +1,22 @@
 ﻿import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
-import ConflictError from '../utils/errors/ConflictError.js';
-import UnauthorizedError from '../utils/errors/UnauthorizedError.js';
-import { BadRequestError, NotFoundError } from '../utils/errors/index.js';
-
+import {
+  BadRequestError,
+  NotFoundError,
+  ConflictError,
+  UnauthorizedError,
+} from '../utils/errors/index.js';
 
 const { JWT_SECRET = 'dev-secret' } = process.env;
 
-const normalizeAvatar = (filename) => `/images/users/${filename}`;
+const normalizeAvatar = filename => `/images/users/${filename}`;
 
 export const createUser = async (req, res, next) => {
   try {
-    const {
-      name,
-      email,
-      password,
-      avatar,
-      city,
-    } = req.body;
+    const { name, email, password, avatar, city } = req.body;
 
     const avatarPath = avatar ? normalizeAvatar(avatar) : null;
-
     const hash = await bcrypt.hash(password, 10);
 
     const user = await User.create({
@@ -52,10 +47,7 @@ export const createUser = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
-    const {
-      email,
-      password,
-    } = req.body;
+    const { email, password } = req.body;
 
     const user = await User.findOne({ email }).select('+password');
     if (!user) {
@@ -106,9 +98,11 @@ export const logout = async (_req, res, next) => {
 export const getCurrentUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
+
     if (!user) {
       throw new NotFoundError('User not found');
     }
+
     res.send({
       name: user.name,
       email: user.email,
@@ -118,6 +112,32 @@ export const getCurrentUser = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+export const getUserById = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    res.send({
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      city: user.city,
+      _id: user._id,
+    });
+  } catch (err) {
+    if (err.name === 'CastError') {
+      next(new BadRequestError('Invalid user ID'));
+    } else {
+      next(err);
+    }
   }
 };
 
@@ -132,11 +152,10 @@ export const updateUser = async (req, res, next) => {
       updates.avatar = normalizeAvatar(req.body.avatar);
     }
 
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      updates,
-      { new: true, runValidators: true },
-    );
+    const user = await User.findByIdAndUpdate(req.user._id, updates, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!user) {
       throw new NotFoundError('User not found');
