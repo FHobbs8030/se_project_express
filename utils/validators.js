@@ -1,49 +1,47 @@
-import { celebrate, Joi } from "celebrate";
-const objectId = () => Joi.string().hex().length(24).required();
+import { celebrate, Joi, Segments } from 'celebrate';
 
-const relativeOrHttpUrl = Joi.string()
-  .pattern(/^(?:https?:\/\/.+|\/[A-Za-z0-9._\-\/]+)$/)
-  .required();
+const allowedExtensions = /\.(png|jpg|jpeg|webp)$/i;
+
+const filenameValidator = Joi.string()
+  .regex(/^[a-zA-Z0-9._-]+$/)
+  .regex(allowedExtensions)
+  .message('Invalid filename format');
 
 export const validateSignup = celebrate({
-  body: Joi.object({
+  [Segments.BODY]: Joi.object().keys({
     name: Joi.string().min(2).max(30).required(),
     email: Joi.string().email().required(),
-    password: Joi.string().min(8).required(),
-    avatar: Joi.string().uri().optional(),
-  }).unknown(false),
+    password: Joi.string().min(6).required(),
+    city: Joi.string().min(2).max(50).allow('', null),
+    avatar: filenameValidator.allow(null, ''),
+  }),
 });
 
-export const validateSignin = celebrate({
-  body: Joi.object({
+export const validateLogin = celebrate({
+  [Segments.BODY]: Joi.object().keys({
     email: Joi.string().email().required(),
-    password: Joi.string().min(8).required(),
-  })
+    password: Joi.string().required(),
+  }),
 });
 
-export const validateUserIdParam = celebrate({
-  params: Joi.object({
-    userId: objectId(),
-  }).unknown(false),
-});
-
-export const validateUpdateProfile = celebrate({
-  body: Joi.object({
-    name: Joi.string().min(2).max(30).required(),
-    avatar: Joi.string().uri().optional(),
-  }).unknown(false),
+export const validateUpdateUser = celebrate({
+  [Segments.BODY]: Joi.object().keys({
+    name: Joi.string().min(2).max(30).optional(),
+    city: Joi.string().min(2).max(50).allow('', null).optional(),
+    avatar: filenameValidator.optional(),
+  }),
 });
 
 export const validateCreateItem = celebrate({
-  body: Joi.object({
+  [Segments.BODY]: Joi.object().keys({
     name: Joi.string().min(2).max(30).required(),
-    weather: Joi.string().valid("hot", "warm", "cold").required(),
-    imageUrl: relativeOrHttpUrl,
-  }).unknown(false),
+    weather: Joi.string().valid('hot', 'warm', 'cold').required(),
+    imageUrl: filenameValidator.required(),
+  }),
 });
 
-export const validateItemIdParam = celebrate({
-  params: Joi.object({
-    itemId: objectId(),
-  }).unknown(false),
+export const validateItemId = celebrate({
+  [Segments.PARAMS]: Joi.object().keys({
+    itemId: Joi.string().hex().length(24).required(),
+  }),
 });

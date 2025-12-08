@@ -1,47 +1,159 @@
-﻿import User from "../models/user.js";
+﻿import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import User from '../models/user.js';
+import BadRequestError from '../utils/errors/BadRequestError.js';
+import ConflictError from '../utils/errors/ConflictError.js';
+import UnauthorizedError from '../utils/errors/UnauthorizedError.js';
+import NotFoundError from '../utils/errors/NotFoundError.js';
 
-function httpError(status, message) {
-  const e = new Error(message);
-  e.statusCode = status;
-  return e;
-}
+const { JWT_SECRET = 'dev-secret' } = process.env;
 
-export async function getCurrentUser(req, res, next) {
+const normalizeAvatar = (filename) => `/images/users/${filename}`;
+
+export const createUser = async (req, res, next) => {
   try {
-    const id = req.user?._id;
-    if (!id) throw httpError(401, "Unauthorized");
-    const user = await User.findById(id);
-    if (!user) throw httpError(404, "User not found");
-    res.status(200).json(user);
+    const {
+      name,
+      email,
+      password,
+      avatar,
+      city,
+    } = req.body;
+
+    const avatarPath = avatar ? normalizeAvatar(avatar) : null;
+
+    const hash = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      name,
+      email,
+      password: hash,
+      avatar: avatarPath,
+      city,
+    });
+
+    res.status(201).send({
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      city: user.city,
+      _id: user._id,
+    });
+  } catch (err) {
+    if (err.code === 11000) {
+      next(new ConflictError('User already exists'));
+    } else if (err.name === 'ValidationError') {
+      next(new BadRequestError('Invalid user data'));
+    } else {
+      next(err);
+    }
+  }
+};
+
+export const login = async (req, res, next) => {
+  try {
+    const {
+      email,
+      password,
+    } = req.body;
+
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      throw new UnauthorizedError('Incorrect email or password');
+    }
+
+    const matched = await bcrypt.compare(password, user.password);
+    if (!matched) {
+      throw new UnauthorizedError('Incorrect email or password');
+    }
+
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+
+    res
+      .cookie('jwt', token, {
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true,
+        maxAge: 3600000 * 24 * 7,
+      })
+      .send({
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        city: user.city,
+        _id: user._id,
+      });
   } catch (err) {
     next(err);
   }
-}
+};
 
-export async function getUserById(req, res, next) {
+export const logout = async (_req, res, next) => {
   try {
-    const { userId } = req.params;
-    const user = await User.findById(userId);
-    if (!user) throw httpError(404, "User not found");
-    res.status(200).json(user);
+    res
+      .cookie('jwt', '', {
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true,
+        expires: new Date(0),
+      })
+      .send({ message: 'Logged out' });
   } catch (err) {
     next(err);
   }
-}
+};
 
-export async function updateProfile(req, res, next) {
+export const getCurrentUser = async (req, res, next) => {
   try {
-    const id = req.user?._id;
-    if (!id) throw httpError(401, "Unauthorized");
-    const { name, avatar } = req.body;
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+    res.send({
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      city: user.city,
+      _id: user._id,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateUser = async (req, res, next) => {
+  try {
+    const updates = {};
+
+    if (req.body.name) updates.name = req.body.name;
+    if (req.body.city) updates.city = req.body.city;
+
+    if (req.body.avatar) {
+      updates.avatar = normalizeAvatar(req.body.avatar);
+    }
+
     const user = await User.findByIdAndUpdate(
-      id,
-      { ...(name !== undefined ? { name } : {}), ...(avatar !== undefined ? { avatar } : {}) },
-      { new: true, runValidators: true }
+      req.user._id,
+      updates,
+      { new: true, runValidators: true },
     );
-    if (!user) throw httpError(404, "User not found");
-    res.status(200).json(user);
+
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    res.send({
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      city: user.city,
+      _id: user._id,
+    });
   } catch (err) {
-    next(err);
+    if (err.name === 'ValidationError') {
+      next(new BadRequestError('Invalid user update data'));
+    } else {
+      next(err);
+    }
   }
-}
+};
