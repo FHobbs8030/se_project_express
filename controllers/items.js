@@ -3,8 +3,6 @@ import BadRequestError from '../utils/errors/BadRequestError.js';
 import NotFoundError from '../utils/errors/NotFoundError.js';
 import ForbiddenError from '../utils/errors/ForbiddenError.js';
 
-const normalizeItemImage = (filename) => `/images/clothes/${filename}`;
-
 export const getItems = async (_req, res, next) => {
   try {
     const items = await Item.find({});
@@ -16,18 +14,12 @@ export const getItems = async (_req, res, next) => {
 
 export const createItem = async (req, res, next) => {
   try {
-    const {
-      name,
-      weather,
-      imageUrl,
-    } = req.body;
-
-    const normalizedImage = normalizeItemImage(imageUrl);
+    const { name, weather, imageUrl } = req.body;
 
     const item = await Item.create({
       name,
       weather,
-      imageUrl: normalizedImage,
+      imageUrl,
       owner: req.user._id,
     });
 
@@ -69,11 +61,7 @@ export const likeItem = async (req, res, next) => {
   try {
     const { itemId } = req.params;
 
-    const item = await Item.findByIdAndUpdate(
-      itemId,
-      { $addToSet: { likes: req.user._id } },
-      { new: true },
-    );
+    const item = await Item.findByIdAndUpdate(itemId, { $addToSet: { likes: req.user._id } }, { new: true });
 
     if (!item) {
       throw new NotFoundError('Item not found');
@@ -93,11 +81,7 @@ export const unlikeItem = async (req, res, next) => {
   try {
     const { itemId } = req.params;
 
-    const item = await Item.findByIdAndUpdate(
-      itemId,
-      { $pull: { likes: req.user._id } },
-      { new: true },
-    );
+    const item = await Item.findByIdAndUpdate(itemId, { $pull: { likes: req.user._id } }, { new: true });
 
     if (!item) {
       throw new NotFoundError('Item not found');

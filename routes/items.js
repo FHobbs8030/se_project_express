@@ -1,4 +1,3 @@
-// src/routes/items.js
 import { Router } from 'express';
 import {
   getItems,
