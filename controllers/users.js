@@ -61,20 +61,22 @@ export const login = async (req, res, next) => {
 
     const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
 
-    res
-      .cookie('jwt', token, {
-        httpOnly: true,
-        sameSite: 'none',
-        secure: true,
-        maxAge: 3600000 * 24 * 7,
-      })
-      .send({
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        city: user.city,
-        _id: user._id,
-      });
+  res
+    .cookie('jwt', token, {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true,
+      maxAge: 3600000 * 24 * 7,
+    })
+    .send({
+      token,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      city: user.city,
+      _id: user._id,
+    });
+
   } catch (err) {
     next(err);
   }
