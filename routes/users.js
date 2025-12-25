@@ -12,7 +12,8 @@ const router = Router();
 
 router.post('/signup', createUser);
 router.post('/signin', login);
-router.post('/logout', logout);
+router.post('/signout', logout);
+
 router.get('/me', auth, getCurrentUser);
 router.patch('/me', auth, updateUser);
 

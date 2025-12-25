@@ -67,7 +67,7 @@ export const login = async (req, res, next) => {
         httpOnly: true,
         sameSite: 'lax',
         secure: false,
-        maxAge: 3600000 * 24 * 7,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       })
       .send({
         _id: user._id,
