@@ -1,12 +1,19 @@
 ﻿import { Router } from 'express';
-import auth from '../middleware/auth.js';
-import { signup, signin, getMe, signout } from '../controllers/users.js';
+import auth from '../middlewares/auth.js';
+import {
+  createUser,
+  login,
+  logout,
+  getCurrentUser,
+  updateUser,
+} from '../controllers/users.js';
 
 const router = Router();
 
-router.post('/signup', signup);
-router.post('/signin', signin);
-router.get('/users/me', auth, getMe);
-router.post('/users/signout', auth, signout);
+router.post('/signup', createUser);
+router.post('/signin', login);
+router.post('/logout', logout);
+router.get('/me', auth, getCurrentUser);
+router.patch('/me', auth, updateUser);
 
 export default router;
