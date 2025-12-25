@@ -1,77 +1,149 @@
 ﻿import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+  UnauthorizedError,
+} from '../utils/errors/index.js';
 
-const cookieOpts = () => {
-  const isProd = process.env.NODE_ENV === 'production';
-  return {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? 'none' : 'lax',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  };
-};
+const { JWT_SECRET = 'dev-secret' } = process.env;
 
-export async function signup(req, res, next) {
+const AVATAR_URL = 'http://localhost:3001/images/users/avatar.png';
+
+export const createUser = async (req, res, next) => {
   try {
-    const { name, avatar, email, password } = req.body;
+    const { name, email, password, city } = req.body;
+
     const hash = await bcrypt.hash(password, 10);
-    const user = await User.create({ name, avatar, email, password: hash });
-    return res
-      .status(201)
-      .json({
-        _id: user._id,
-        name: user.name,
-        avatar: user.avatar,
-        email: user.email,
-      });
-  } catch (e) {
-    return next(e);
-  }
-}
 
-export async function signin(req, res, next) {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email }).select('+password');
-    if (!user)
-      return res.status(401).json({ message: 'Invalid email or password' });
-    const ok = await bcrypt.compare(password, user.password);
-    if (!ok)
-      return res.status(401).json({ message: 'Invalid email or password' });
-    const token = jwt.sign(
-      { _id: user._id },
-      process.env.JWT_SECRET || 'dev-secret',
-      { expiresIn: '7d' }
-    );
-    res.cookie('jwt', token, cookieOpts());
-    return res.json({
+    const user = await User.create({
+      name,
+      email,
+      password: hash,
+      avatar: AVATAR_URL,
+      city,
+    });
+
+    res.status(201).send({
       _id: user._id,
       name: user.name,
-      avatar: user.avatar,
       email: user.email,
+      avatar: user.avatar,
+      city: user.city,
     });
-  } catch (e) {
-    return next(e);
+  } catch (err) {
+    if (err.code === 11000) {
+      next(new ConflictError('User already exists'));
+    } else if (err.name === 'ValidationError') {
+      next(new BadRequestError('Invalid user data'));
+    } else {
+      next(err);
+    }
   }
-}
+};
 
-export async function getMe(req, res, next) {
+export const login = async (req, res, next) => {
   try {
-    const me = await User.findById(req.user._id);
-    if (!me) return res.status(404).json({ message: 'User not found' });
-    return res.json({
-      _id: me._id,
-      name: me.name,
-      avatar: me.avatar,
-      email: me.email,
-    });
-  } catch (e) {
-    return next(e);
-  }
-}
+    const { email, password } = req.body;
 
-export async function signout(_req, res) {
-  res.clearCookie('jwt', cookieOpts());
-  return res.json({ message: 'Signed out' });
-}
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      throw new UnauthorizedError('Incorrect email or password');
+    }
+
+    const matched = await bcrypt.compare(password, user.password);
+    if (!matched) {
+      throw new UnauthorizedError('Incorrect email or password');
+    }
+
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+
+    res
+      .cookie('jwt', token, {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: false,
+        maxAge: 3600000 * 24 * 7,
+      })
+      .send({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        city: user.city,
+      });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const logout = async (_req, res, next) => {
+  try {
+    res
+      .cookie('jwt', '', {
+        httpOnly: true,
+        sameSite: 'lax',
+        secure: false,
+        expires: new Date(0),
+      })
+      .send({ message: 'Logged out' });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getCurrentUser = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    res.send({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      city: user.city,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateUser = async (req, res, next) => {
+  try {
+    const updates = {};
+
+    if (req.body.name) updates.name = req.body.name;
+    if (req.body.city) updates.city = req.body.city;
+
+    updates.avatar = AVATAR_URL;
+
+    const user = await User.findByIdAndUpdate(req.user._id, updates, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    res.send({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      city: user.city,
+    });
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      next(new BadRequestError('Invalid user update data'));
+    } else {
+      next(err);
+    }
+  }
+};

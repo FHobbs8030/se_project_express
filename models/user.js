@@ -1,13 +1,30 @@
-﻿// se_project_express/models/user.js
-import mongoose from "mongoose";
+﻿import mongoose from 'mongoose';
 
-const userSchema = new mongoose.Schema(
-  {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true, select: false },
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+    minlength: 2,
+    maxlength: 30,
   },
-  { versionKey: false }
-);
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    required: true,
+    select: false,
+  },
+  avatar: {
+    type: String,
+    required: true,
+  },
+  city: {
+    type: String,
+    required: true,
+  },
+});
 
-export default mongoose.model("User", userSchema);
+export default mongoose.model('User', userSchema);
