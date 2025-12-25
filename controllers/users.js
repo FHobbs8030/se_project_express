@@ -12,7 +12,7 @@ const { JWT_SECRET = 'dev-secret' } = process.env;
 
 const AVATAR_URL = 'http://localhost:3001/images/users/avatar.png';
 
-export const signup = async (req, res, next) => {
+export const createUser = async (req, res, next) => {
   try {
     const { name, email, password, city } = req.body;
 
@@ -44,7 +44,7 @@ export const signup = async (req, res, next) => {
   }
 };
 
-export const signin = async (req, res, next) => {
+export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -58,7 +58,9 @@ export const signin = async (req, res, next) => {
       throw new UnauthorizedError('Incorrect email or password');
     }
 
-    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
+      expiresIn: '7d',
+    });
 
     res
       .cookie('jwt', token, {
@@ -79,7 +81,7 @@ export const signin = async (req, res, next) => {
   }
 };
 
-export const signout = async (_req, res, next) => {
+export const logout = async (_req, res, next) => {
   try {
     res
       .cookie('jwt', '', {
@@ -94,7 +96,7 @@ export const signout = async (_req, res, next) => {
   }
 };
 
-export const getMe = async (req, res, next) => {
+export const getCurrentUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
 
