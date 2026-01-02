@@ -1,14 +1,19 @@
 ﻿import jwt from 'jsonwebtoken';
 
+const { JWT_SECRET = 'dev-secret' } = process.env;
+
 export default function auth(req, res, next) {
+  const token = req.cookies.jwt;
+
+  if (!token) {
+    return res.status(401).send({ message: 'Authorization required' });
+  }
+
   try {
-    const token = req.cookies?.jwt;
-    if (!token)
-      return res.status(401).json({ message: 'Authorization required' });
-    const payload = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
-    req.user = { _id: payload._id };
+    const payload = jwt.verify(token, JWT_SECRET);
+    req.user = payload;
     next();
   } catch {
-    res.status(401).json({ message: 'Authorization required' });
+    res.status(401).send({ message: 'Authorization required' });
   }
 }
