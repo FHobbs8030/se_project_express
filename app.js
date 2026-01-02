@@ -2,6 +2,7 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 
 import usersRouter from './routes/users.js';
 import itemsRouter from './routes/items.js';
@@ -23,6 +24,8 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+app.use(express.static(path.join(process.cwd(), 'public')));
+
 app.use('/users', usersRouter);
 app.use('/items', itemsRouter);
 
@@ -31,3 +34,4 @@ app.use((req, res) => {
 });
 
 app.listen(PORT);
+
