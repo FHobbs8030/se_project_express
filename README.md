@@ -1,33 +1,56 @@
-# WTWR Backend (Sprint 14)
+# WTWR Backend — Sprint 14
 
-This is the **backend API** for the WTWR (What To Wear) application, built with **Express** and **MongoDB**.
-It provides user authentication, profile management, and CRUD operations for clothing items.
+This repository contains the **backend API** for the WTWR (What To Wear) application.  
+The server is built with **Express** and **MongoDB** and provides authentication, user management, and CRUD operations for clothing items.
+
+This backend fully satisfies **Sprint 14** requirements.
 
 ---
 
 ## 🚀 Features
 
-* JWT authentication with signup, signin, and signout
-* User profile routes: get current user, get user by ID, update profile
-* Clothing item routes: create, list, like/unlike, delete (owner only)
-* Input validation with **Celebrate/Joi**
-* Centralized error handling
-* CORS with configurable client origin
-* Environment-based configuration
-* Health check endpoint `GET /health`
+- JWT-based authentication (signup, signin, signout)
+- Secure password hashing with bcrypt
+- User profile management
+- Clothing items CRUD with ownership enforcement
+- Like / unlike functionality for items
+- Input validation with Celebrate / Joi
+- Centralized error handling
+- Configurable CORS support
+- Environment-based configuration
+- Health check endpoint
 
 ---
 
-## 📦 Tech Stack
+## 🧱 Tech Stack
 
-* Node.js / Express
-* MongoDB + Mongoose
-* Celebrate / Joi (validation)
-* bcryptjs (password hashing)
-* jsonwebtoken (JWT auth)
-* dotenv (environment config)
-* cors, cookie-parser
-* nodemon (dev)
+- Node.js
+- Express
+- MongoDB + Mongoose
+- Celebrate / Joi
+- bcryptjs
+- jsonwebtoken
+- dotenv
+- cors
+- cookie-parser
+- nodemon (development)
+
+---
+
+## 📁 Project Structure
+
+```text
+
+se_project_express/
+├── controllers/
+├── models/
+├── routes/
+├── middlewares/
+├── utils/
+├── app.js
+├── package.json
+└── README.md
+```
 
 ---
 
@@ -35,9 +58,9 @@ It provides user authentication, profile management, and CRUD operations for clo
 
 ### Prerequisites
 
-* Node.js v18+
-* MongoDB (local or Atlas)
-* Postman (desktop app or web + Desktop Agent)
+- Node.js v18+
+- MongoDB (local or MongoDB Atlas)
+- Postman
 
 ### Installation
 
@@ -47,9 +70,11 @@ cd se_project_express
 npm install
 ```
 
+---
+
 ### Environment Variables
 
-Create a `.env` file in the root:
+Create a `.env` file in the project root:
 
 ```ini
 PORT=3001
@@ -58,25 +83,22 @@ JWT_SECRET=supersecretjwt
 CLIENT_ORIGIN=http://localhost:5173
 ```
 
-> Make sure `CLIENT_ORIGIN` matches your frontend origin(s).
-
 ---
 
-## ▶️ Running
-
-Start the server:
+## ▶️ Running the Server
 
 ```bash
-npm run dev    # nodemon
+npm run dev
 # or
 npm start
 ```
 
-Sanity check (HTTP request and expected JSON response):
+---
+
+## 🩺 Health Check
 
 ```http
-GET /health HTTP/1.1
-Host: localhost:3001
+GET /health
 ```
 
 ```json
@@ -87,107 +109,36 @@ Host: localhost:3001
 
 ## 📡 API Endpoints
 
-### Auth
+### Authentication
 
-* `POST /signup` → Create user
-  **Body**:
-
-  ```json
-  { "name": "Fred", "email": "fred@example.com", "password": "Password123!", "avatar": "/images/clothes/Avatar.png" }
-  ```
-
-* `POST /signin` → Returns `{ "token": "..." }` and sets `jwt` cookie
-
-* `POST /signout` → Clears cookie
+- POST /signup
+- POST /signin
+- POST /signout
 
 ### Users (Auth required)
 
-* `GET /users/me`
-* `GET /users/:userId`
-* `PATCH /users/me`
-  **Body**:
-
-  ```json
-  { "name": "Fred Updated", "avatar": "/images/clothes/Avatar.png" }
-  ```
+- GET /users/me
+- GET /users/:userId
+- PATCH /users/me
 
 ### Items (Auth required)
 
-* `GET /items`
-
-* `POST /items` → Create item
-  **Body**:
-
-  ```json
-  { "name": "T-shirt", "weather": "warm", "imageUrl": "/images/clothes/T-shirt.png" }
-  ```
-
-* `PUT /items/:itemId/likes` → Like
-
-* `DELETE /items/:itemId/likes` → Unlike
-
-* `DELETE /items/:itemId` → Delete (owner only)
+- GET /items
+- POST /items
+- PUT /items/:itemId/likes
+- DELETE /items/:itemId/likes
+- DELETE /items/:itemId
 
 ---
 
-## 📸 API Validation (Screenshots)
+## 🧪 Testing
 
-The following screenshots demonstrate successful authentication, item creation, and database persistence during Sprint 14 validation.
-
-### Authentication – Signin Success
-
-![POST /signin – 200 OK](./images/postman-signin.png)
-
-### Item Creation – Authorized User
-
-![POST /items – 201 Created](./images/postman-create-item.png)
-
-### Database Persistence – Item Document
-
-![MongoDB – items collection](./images/mongodb-item.png)
-
-> Screenshots were captured using Postman and MongoDB Compass to verify correct API behavior, ownership assignment, and data persistence.
+All Postman tests pass (**20/20**).
 
 ---
 
-## 🧪 Testing with Postman
+## 🔒 Production Notes
 
-### Import Test Assets
-
-Include these files in the repo root (or `/docs`):
-
-* `WTWR_Sprint14.postman_collection.json`
-* `WTWR-Local.postman_environment.json`
-
-### How to Run
-
-1. Import both files into Postman.
-2. Select the **WTWR–Local** environment (top-right).
-3. Start backend (`npm run dev`).
-4. **Run Collection** → executes: Signup → Signin → Users (me/by id/patch) → Items (create/list/like/unlike/delete) → Signout.
-
-#### Common Pitfalls
-
-* **400 on `/signup`** → `avatar` cannot be empty; remove the field or set a valid URL.
-* **409 on `/signup`** → email already exists; change `email` to something unique (e.g., `fred+<timestamp>@example.com`).
-* **401 on `/users` or `/items`** → token missing/invalid; run Signin first.
-* **403 on `/items/:id` delete** → you can only delete items you own.
-* **400 on `/items` create** → `weather` must be `hot|warm|cold`; `imageUrl` must be absolute or `/images/...`.
-
-> Tip: In the Postman Console (**View → Show Postman Console**), you can inspect the exact request body and variables used.
-
----
-
-## 🎯 Sprint 14 Completion
-
-* All Postman tests (**20/20**) pass: Auth, Users, Items, Likes, Owner Delete, Validation.
-* Backend is **100% complete** for Sprint 14.
-
----
-
-## 🔒 Security & Production Notes (optional hardening)
-
-* Store strong `JWT_SECRET` and secure it in production.
-* Set `COOKIE_SECURE=true` and serve over HTTPS in prod.
-* Consider adding rate limiting and security headers (helmet).
-* Validate CORS origins carefully in `CLIENT_ORIGIN`.
+- Use HTTPS in production
+- Store secrets securely
+- Restrict CORS origins
