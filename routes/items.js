@@ -7,14 +7,16 @@ import {
   unlikeItem,
   deleteItem,
 } from '../controllers/items.js';
-import { validateCardBody, validateId } from '../middlewares/validation.js';
+import { validateCardBody, validateItemId } from '../middlewares/validation.js';
+
+console.log('ITEMS ROUTER LOADED');
 
 const router = Router();
 
 router.get('/', getItems);
 router.post('/', auth, validateCardBody, createItem);
-router.put('/:itemId/likes', auth, validateId, likeItem);
-router.delete('/:itemId/likes', auth, validateId, unlikeItem);
-router.delete('/:itemId', auth, validateId, deleteItem);
+router.put('/:itemId/likes', auth, validateItemId, likeItem);
+router.delete('/:itemId/likes', auth, validateItemId, unlikeItem);
+router.delete('/:itemId', auth, validateItemId, deleteItem);
 
 export default router;

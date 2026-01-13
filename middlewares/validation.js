@@ -54,9 +54,15 @@ export const validateLogin = celebrate({
   }),
 });
 
-export const validateId = celebrate({
+export const validateUserId = celebrate({
   params: Joi.object().keys({
     userId: Joi.string().hex().length(24).required(),
+  }),
+});
+
+export const validateItemId = celebrate({
+  params: Joi.object().keys({
     itemId: Joi.string().hex().length(24).required(),
   }),
 });
+
