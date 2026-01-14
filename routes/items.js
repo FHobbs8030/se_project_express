@@ -9,8 +9,6 @@ import {
 } from '../controllers/items.js';
 import { validateCardBody, validateItemId } from '../middlewares/validation.js';
 
-console.log('ITEMS ROUTER LOADED');
-
 const router = Router();
 
 router.get('/', getItems);

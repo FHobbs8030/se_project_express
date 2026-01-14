@@ -4,7 +4,6 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { errors } from 'celebrate';
-
 import usersRouter from './routes/users.js';
 import itemsRouter from './routes/items.js';
 import { requestLogger, errorLogger } from './middlewares/logger.js';
