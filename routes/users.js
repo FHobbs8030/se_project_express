@@ -7,7 +7,11 @@ import {
   getCurrentUser,
   updateUser,
 } from '../controllers/users.js';
-import { validateUserBody, validateLogin } from '../middlewares/validation.js';
+import {
+  validateUserBody,
+  validateLogin,
+  validateProfileUpdate,
+} from '../middlewares/validation.js';
 
 const router = Router();
 
@@ -16,6 +20,6 @@ router.post('/signin', validateLogin, login);
 router.post('/signout', logout);
 
 router.get('/me', auth, getCurrentUser);
-router.patch('/me', auth, validateUserBody, updateUser);
+router.patch('/me', auth, validateProfileUpdate, updateUser);
 
 export default router;
