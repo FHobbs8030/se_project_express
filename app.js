@@ -7,6 +7,8 @@ import { errors } from 'celebrate';
 import usersRouter from './routes/users.js';
 import itemsRouter from './routes/items.js';
 import { requestLogger, errorLogger } from './middlewares/logger.js';
+import { createUser, login, logout } from './controllers/users.js';
+import { validateUserBody, validateLogin } from './middlewares/validation.js';
 
 const { PORT = 3001, MONGO_URL = 'mongodb://127.0.0.1:27017/wtwr_db' } =
   process.env;
@@ -22,12 +24,21 @@ app.use(
   })
 );
 
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
+
 app.use(express.json());
 app.use(cookieParser());
 
 app.use(requestLogger);
 
 app.use(express.static(path.join(process.cwd(), 'public')));
+
+app.post('/signup', validateUserBody, createUser);
+app.post('/signin', validateLogin, login);
+app.post('/signout', logout);
 
 app.use('/users', usersRouter);
 app.use('/items', itemsRouter);

@@ -51,3 +51,6 @@ uploads/
 # session cookies
 cookies.txt
 desktop.ini
+
+newman/
+*.html
