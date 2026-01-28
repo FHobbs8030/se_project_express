@@ -6,7 +6,7 @@ const { JWT_SECRET = 'dev-secret' } = process.env;
 
 export const createUser = async (req, res, next) => {
   try {
-    const { name, email, password, city } = req.body;
+    const { name, email, password } = req.body;
     const hash = await bcrypt.hash(password, 10);
 
     const user = await User.create({
@@ -14,7 +14,6 @@ export const createUser = async (req, res, next) => {
       email,
       password: hash,
       avatar: 'http://localhost:3001/images/users/avatar.png',
-      city,
     });
 
     res.status(201).send({
@@ -22,7 +21,6 @@ export const createUser = async (req, res, next) => {
       name: user.name,
       email: user.email,
       avatar: user.avatar,
-      city: user.city,
     });
   } catch (err) {
     next(err);
@@ -57,7 +55,6 @@ export const login = async (req, res, next) => {
         name: user.name,
         email: user.email,
         avatar: user.avatar,
-        city: user.city,
       });
   } catch (err) {
     next(err);
@@ -87,7 +84,6 @@ export const getCurrentUser = async (req, res, next) => {
       name: user.name,
       email: user.email,
       avatar: user.avatar,
-      city: user.city,
     });
   } catch (err) {
     next(err);

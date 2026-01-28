@@ -21,10 +21,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  city: {
-    type: String,
-    required: true,
-  },
 });
 
 export default mongoose.model('User', userSchema);
