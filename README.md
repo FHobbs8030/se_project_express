@@ -1,9 +1,20 @@
-# WTWR Backend — Sprint 14
+# WTWR — Backend (Express + MongoDB)
 
-This repository contains the **backend API** for the WTWR (What To Wear) application.  
-The server is built with **Express** and **MongoDB** and provides authentication, user management, and CRUD operations for clothing items.
+This repository contains the **backend API** for the WTWR (What To Wear) application.
+The server is built with **Express** and **MongoDB** and provides authentication, user management,
+and CRUD operations for clothing items.
 
-This backend fully satisfies **Sprint 14** requirements.
+---
+
+## 🌐 Frontend Integration
+
+This backend powers the WTWR frontend application.
+
+Frontend Repository:  
+[https://github.com/FHobbs8030/se_project_react](https://github.com/FHobbs8030/se_project_react)
+
+Deployed Frontend:  
+[https://eloquent-sfogliatella-dfc39f.netlify.app](https://eloquent-sfogliatella-dfc39f.netlify.app)
 
 ---
 
@@ -40,7 +51,6 @@ This backend fully satisfies **Sprint 14** requirements.
 ## 📁 Project Structure
 
 ```text
-
 se_project_express/
 ├── controllers/
 ├── models/
@@ -72,7 +82,7 @@ npm install
 
 ---
 
-### Environment Variables
+## 🔐 Environment Variables
 
 Create a `.env` file in the project root:
 
@@ -80,7 +90,7 @@ Create a `.env` file in the project root:
 PORT=3001
 MONGO_URL=mongodb://127.0.0.1:27017/wtwr
 JWT_SECRET=supersecretjwt
-CLIENT_ORIGIN=http://localhost:5173
+CLIENT_ORIGIN=http://localhost:5175
 ```
 
 ---
@@ -133,7 +143,15 @@ GET /health
 
 ## 🧪 Testing
 
-All Postman tests pass (**20/20**).
+All Postman tests pass.
+
+---
+
+## 🚀 Deployment Status
+
+This backend is currently intended to be run locally or on a private server.
+
+The deployed frontend communicates with this API via the configured `VITE_API_BASE_URL`.
 
 ---
 
