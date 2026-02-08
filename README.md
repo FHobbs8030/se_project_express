@@ -8,13 +8,32 @@ and CRUD operations for clothing items.
 
 ## 🌐 Frontend Integration
 
-This backend powers the WTWR frontend application.
+This backend powers the WTWR frontend application deployed on Google Cloud.
 
 Frontend Repository:  
-[https://github.com/FHobbs8030/se_project_react](https://github.com/FHobbs8030/se_project_react)
+<https://github.com/FHobbs8030/se_project_react>
 
 Deployed Frontend:  
-[https://eloquent-sfogliatella-dfc39f.netlify.app](https://eloquent-sfogliatella-dfc39f.netlify.app)
+<http://34.42.205.0>
+
+Backend API (deployed):  
+<http://34.42.205.0/api>
+
+Backend Repository:  
+[https://github.com/FHobbs8030/se_project_express](https://github.com/FHobbs8030/se_project_express)
+
+---
+
+## 🚀 Deployment
+
+The backend API is deployed on a **Google Cloud Compute Engine** virtual machine and runs as a long-lived Node.js process.
+
+- Hosted on a dedicated VM (Debian)
+- Internally runs on port **3001**
+- Exposed publicly via **Nginx reverse proxy** at `/api`
+- Frontend communicates with the backend through `/api`
+- Environment configured via `.env`
+- Process managed with **PM2**
 
 ---
 
@@ -44,6 +63,8 @@ Deployed Frontend:
 - dotenv
 - cors
 - cookie-parser
+- PM2 (production process management)
+- Nginx
 - nodemon (development)
 
 ---
@@ -64,33 +85,13 @@ se_project_express/
 
 ---
 
-## ⚙️ Setup
-
-### Prerequisites
-
-- Node.js v18+
-- MongoDB (local or MongoDB Atlas)
-- Postman
-
-### Installation
-
-```bash
-git clone <repo-url>
-cd se_project_express
-npm install
-```
-
----
-
 ## 🔐 Environment Variables
-
-Create a `.env` file in the project root:
 
 ```ini
 PORT=3001
-MONGO_URL=mongodb://127.0.0.1:27017/wtwr
-JWT_SECRET=supersecretjwt
-CLIENT_ORIGIN=http://localhost:5175
+MONGO_URI=<mongo_connection_string>
+JWT_SECRET=<long_random_secret>
+CORS_ORIGIN=http://34.42.205.0
 ```
 
 ---
@@ -117,46 +118,8 @@ GET /health
 
 ---
 
-## 📡 API Endpoints
+## 📄 Production Notes
 
-### Authentication
-
-- POST /signup
-- POST /signin
-- POST /signout
-
-### Users (Auth required)
-
-- GET /users/me
-- GET /users/:userId
-- PATCH /users/me
-
-### Items (Auth required)
-
-- GET /items
-- POST /items
-- PUT /items/:itemId/likes
-- DELETE /items/:itemId/likes
-- DELETE /items/:itemId
-
----
-
-## 🧪 Testing
-
-All Postman tests pass.
-
----
-
-## 🚀 Deployment Status
-
-This backend is currently intended to be run locally or on a private server.
-
-The deployed frontend communicates with this API via the configured `VITE_API_BASE_URL`.
-
----
-
-## 🔒 Production Notes
-
-- Use HTTPS in production
-- Store secrets securely
-- Restrict CORS origins
+- Use a reverse proxy (Nginx) in production
+- Restrict CORS origins to the deployed frontend
+- Use a process manager (PM2) for uptime
