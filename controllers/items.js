@@ -1,11 +1,14 @@
 import Item from '../models/item.js';
+import NotFoundError from '../utils/errors/NotFoundError.js';
+import ForbiddenError from '../utils/errors/ForbiddenError.js';
+import BadRequestError from '../utils/errors/BadRequestError.js';
 
 export async function getItems(req, res, next) {
   try {
     const items = await Item.find({}).sort({ createdAt: -1 });
     return res.json(items);
-  } catch (e) {
-    return next(e);
+  } catch (err) {
+    return next(err);
   }
 }
 
@@ -21,8 +24,12 @@ export async function createItem(req, res, next) {
     });
 
     return res.status(201).json(item);
-  } catch (e) {
-    return next(e);
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      return next(new BadRequestError('Invalid item data'));
+    }
+
+    return next(err);
   }
 }
 
@@ -37,12 +44,12 @@ export async function likeItem(req, res, next) {
     );
 
     if (!updated) {
-      return res.status(404).json({ message: 'Item not found' });
+      return next(new NotFoundError('Item not found'));
     }
 
     return res.json(updated);
-  } catch (e) {
-    return next(e);
+  } catch (err) {
+    return next(err);
   }
 }
 
@@ -57,12 +64,12 @@ export async function unlikeItem(req, res, next) {
     );
 
     if (!updated) {
-      return res.status(404).json({ message: 'Item not found' });
+      return next(new NotFoundError('Item not found'));
     }
 
     return res.json(updated);
-  } catch (e) {
-    return next(e);
+  } catch (err) {
+    return next(err);
   }
 }
 
@@ -73,17 +80,17 @@ export async function deleteItem(req, res, next) {
     const item = await Item.findById(itemId);
 
     if (!item) {
-      return res.status(404).json({ message: 'Item not found' });
+      return next(new NotFoundError('Item not found'));
     }
 
     if (String(item.owner) !== String(req.user._id)) {
-      return res.status(403).json({ message: 'Forbidden' });
+      return next(new ForbiddenError('Forbidden'));
     }
 
     await item.deleteOne();
 
     return res.json({ message: 'Deleted', _id: itemId });
-  } catch (e) {
-    return next(e);
+  } catch (err) {
+    return next(err);
   }
 }
