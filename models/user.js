@@ -1,4 +1,4 @@
-﻿import mongoose from 'mongoose';
+import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -11,6 +11,8 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
+    lowercase: true,
+    match: [/^\S+@\S+\.\S+$/, 'Invalid email format'],
   },
   password: {
     type: String,
@@ -20,6 +22,7 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     required: true,
+    match: [/^https?:\/\/.+/, 'Invalid avatar URL'],
   },
 });
 

@@ -19,7 +19,7 @@ const clothingItemSchema = new mongoose.Schema(
       type: String,
       required: true,
       validate: {
-        validator: (v) => validator.isURL(v, { require_protocol: true }),
+        validator: v => validator.isURL(v, { require_protocol: true }),
         message: 'imageUrl must be a valid URL',
       },
     },
@@ -40,7 +40,7 @@ const clothingItemSchema = new mongoose.Schema(
       required: true,
     },
   },
-  { versionKey: false },
+  { versionKey: false }
 );
 
 export default mongoose.model('clothingItem', clothingItemSchema);

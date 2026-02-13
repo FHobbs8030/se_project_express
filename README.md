@@ -6,38 +6,36 @@ and CRUD operations for clothing items.
 
 ---
 
-## 🌐 Frontend Integration
+## Live Project
 
-This backend powers the WTWR frontend application deployed on Google Cloud.
+Frontend (Production):
+<https://fhobbs.twilightparadox.com>
 
-Frontend Repository:  
+Backend API (Production Base URL):
+<https://api.fhobbs.twilightparadox.com>
+
+Frontend Repository:
 <https://github.com/FHobbs8030/se_project_react>
 
-Deployed Frontend:  
-<http://34.42.205.0>
-
-Backend API (deployed):  
-<http://34.42.205.0/api>
-
-Backend Repository:  
-[https://github.com/FHobbs8030/se_project_express](https://github.com/FHobbs8030/se_project_express)
+Backend Repository:
+<https://github.com/FHobbs8030/se_project_express>
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 The backend API is deployed on a **Google Cloud Compute Engine** virtual machine and runs as a long-lived Node.js process.
 
-- Hosted on a dedicated VM (Debian)
-- Internally runs on port **3001**
-- Exposed publicly via **Nginx reverse proxy** at `/api`
-- Frontend communicates with the backend through `/api`
+- Hosted on a dedicated Debian VM
+- Application listens internally on port **3001**
+- Exposed publicly via **Nginx reverse proxy**
+- Public API base path: `/api`
 - Environment configured via `.env`
 - Process managed with **PM2**
 
 ---
 
-## 🚀 Features
+## Features
 
 - JWT-based authentication (signup, signin, signout)
 - Secure password hashing with bcrypt
@@ -45,14 +43,15 @@ The backend API is deployed on a **Google Cloud Compute Engine** virtual machine
 - Clothing items CRUD with ownership enforcement
 - Like / unlike functionality for items
 - Input validation with Celebrate / Joi
-- Centralized error handling
+- Centralized error handling with custom error classes
 - Configurable CORS support
 - Environment-based configuration
 - Health check endpoint
+- Crash test route for production resilience validation
 
 ---
 
-## 🧱 Tech Stack
+## Tech Stack
 
 - Node.js
 - Express
@@ -69,7 +68,7 @@ The backend API is deployed on a **Google Cloud Compute Engine** virtual machine
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 se_project_express/
@@ -85,18 +84,18 @@ se_project_express/
 
 ---
 
-## 🔐 Environment Variables
+## Environment Variables
 
 ```ini
 PORT=3001
 MONGO_URI=<mongo_connection_string>
 JWT_SECRET=<long_random_secret>
-CORS_ORIGIN=http://34.42.205.0
+CORS_ORIGIN=https://fhobbs.twilightparadox.com
 ```
 
 ---
 
-## ▶️ Running the Server
+## Running the Server
 
 ```bash
 npm run dev
@@ -106,11 +105,13 @@ npm start
 
 ---
 
-## 🩺 Health Check
+## Health Check
 
 ```http
 GET /health
 ```
+
+Response:
 
 ```json
 { "status": "ok" }
@@ -118,8 +119,25 @@ GET /health
 
 ---
 
-## 📄 Production Notes
+## Crash Test Route
 
-- Use a reverse proxy (Nginx) in production
-- Restrict CORS origins to the deployed frontend
+```http
+GET /crash-test
+```
+
+Used to verify PM2 automatic restart behavior in production.
+
+---
+
+## Production Notes
+
+- Use Nginx as a reverse proxy
+- Restrict CORS origins to the deployed frontend domain
 - Use a process manager (PM2) for uptime
+- Ensure environment secrets are not committed to version control
+
+---
+
+## License
+
+MIT

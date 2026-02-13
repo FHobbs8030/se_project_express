@@ -4,7 +4,12 @@ module.exports = {
   extends: ['airbnb-base', 'plugin:prettier/recommended'],
   parserOptions: {
     ecmaVersion: 'latest',
-    sourceType: 'module'
+    sourceType: 'module',
   },
-  rules: {}
+  rules: {
+    'import/extensions': 'off',
+    'no-underscore-dangle': 'off',
+    'import/prefer-default-export': 'off',
+    'no-useless-escape': 'off',
+  },
 };

@@ -1,6 +1,11 @@
-export default function errorHandler(err, _req, res, _next) {
+export default function errorHandler(err, req, res, next) {
   const { statusCode = 500, message } = err;
-  res.status(statusCode).json({
-    message: statusCode === 500 ? 'Internal Server Error' : message,
+
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  return res.status(statusCode).send({
+    message: statusCode === 500 ? 'An error occurred on the server' : message,
   });
 }

@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import { createUser, login, logout } from '../controllers/users.js';
 import { validateUserBody, validateLogin } from '../middlewares/validation.js';
 
