@@ -49,6 +49,10 @@ export async function likeItem(req, res, next) {
 
     return res.json(updated);
   } catch (err) {
+    if (err.name === 'CastError') {
+      return next(new BadRequestError('Invalid item ID'));
+    }
+
     return next(err);
   }
 }
@@ -69,6 +73,10 @@ export async function unlikeItem(req, res, next) {
 
     return res.json(updated);
   } catch (err) {
+    if (err.name === 'CastError') {
+      return next(new BadRequestError('Invalid item ID'));
+    }
+
     return next(err);
   }
 }
@@ -91,6 +99,10 @@ export async function deleteItem(req, res, next) {
 
     return res.json({ message: 'Deleted', _id: itemId });
   } catch (err) {
+    if (err.name === 'CastError') {
+      return next(new BadRequestError('Invalid item ID'));
+    }
+
     return next(err);
   }
 }
