@@ -64,9 +64,10 @@ export const login = async (req, res, next) => {
     return res
       .cookie('jwt', token, {
         httpOnly: true,
-        sameSite: 'none',
+        sameSite: 'lax',
         secure: false,
         maxAge: 604800000,
+        path: '/',
       })
       .send({
         _id: user._id,
@@ -83,9 +84,10 @@ export const logout = (_req, res) => {
   return res
     .cookie('jwt', '', {
       httpOnly: true,
-      sameSite: 'none',
+      sameSite: 'lax',
       secure: false,
       expires: new Date(0),
+      path: '/',
     })
     .send({ message: 'Logged out' });
 };
