@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
@@ -16,20 +19,32 @@ import { validateUserBody, validateLogin } from './middlewares/validation.js';
 
 import NotFoundError from './utils/errors/NotFoundError.js';
 
-const { PORT = 3001, MONGO_URL = 'mongodb://127.0.0.1:27017/wtwr_db' } =
-  process.env;
+const {
 
-mongoose.connect(MONGO_URL);
+PORT = 3001,
+
+MONGO_URI = 'mongodb://127.0.0.1:27017/wtwr_db',
+
+CORS_ORIGIN
+
+} = process.env;
+
+mongoose.connect(MONGO_URI);
 
 const app = express();
+app.set('trust proxy', 1);
 
 app.use(
   cors({
+<<<<<<< HEAD
     origin: [
       'http://localhost:5175',
       'http://localhost:5173',
       'https://fhobbs.twilightparadox.com',
     ],
+=======
+    origin: CORS_ORIGIN,
+>>>>>>> 7e197c5 (Update auth, user model, and app configuration)
     credentials: true,
   })
 );
@@ -79,8 +94,17 @@ app.use(errorLogger);
 
 app.use(errors());
 
+<<<<<<< HEAD
 /* ---------- Centralized Error Handler ---------- */
 
 app.use(errorHandler);
+=======
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+  res.status(statusCode).send({
+    message: statusCode === 500 ? 'An error occurred on the server' : message,
+  });
+});
+>>>>>>> 7e197c5 (Update auth, user model, and app configuration)
 
-app.listen(PORT);
+app.listen(PORT, '0.0.0.0');

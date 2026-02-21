@@ -22,8 +22,15 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     required: true,
-    match: [/^https?:\/\/.+/, 'Invalid avatar URL'],
-  },
+avatar: {
+  type: String,
+  required: true,
+  match: [/^https?:\/\/.+/, 'Invalid avatar URL'],
+},
+city: {
+  type: String,
+},
+
 });
 
 export default mongoose.model('User', userSchema);

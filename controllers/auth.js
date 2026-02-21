@@ -57,11 +57,15 @@ export async function signin(req, res, next) {
 
     const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
 
-    return res
-      .cookie('jwt', token, {
-        httpOnly: true,
-        sameSite: 'lax',
-        secure: false,
+    res.clearCookie("jwt", {
+  httpOnly: true,
+  sameSite: "none",
+  secure: true,
+  path: "/",
+});
+
+        sameSite: "none",
+        secure: true,
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: '/',
       })
@@ -75,10 +79,11 @@ export async function signin(req, res, next) {
 
 export async function signout(req, res, next) {
   try {
-    res.clearCookie('jwt', {
+    res.clearCookie("jwt", {
       httpOnly: true,
-      sameSite: 'lax',
-      path: '/',
+      sameSite: "none",
+      secure: true,
+      path: "/",
     });
 
     return res.status(204).send();
@@ -86,3 +91,5 @@ export async function signout(req, res, next) {
     return next(err);
   }
 }
+
+
