@@ -38,6 +38,7 @@ app.use(
   cors({
 <<<<<<< HEAD
     origin: [
+      'http://localhost:5176',
       'http://localhost:5175',
       'http://localhost:5173',
       'https://fhobbs.twilightparadox.com',
@@ -51,7 +52,7 @@ app.use(
 
 app.use((req, res, next) => {
   res.set('Cache-Control', 'no-store');
-  return next();
+  next();
 });
 
 app.use(express.json());
@@ -61,50 +62,28 @@ app.use(requestLogger);
 
 app.use(express.static(path.join(process.cwd(), 'public')));
 
-/* ---------- Crash Test Route ---------- */
-
 app.get('/crash-test', () => {
   setTimeout(() => {
     throw new Error('Server will crash now');
   }, 0);
 });
 
-/* ---------- Auth Routes ---------- */
-
 app.post('/signup', validateUserBody, createUser);
 app.post('/signin', validateLogin, login);
 app.post('/signout', logout);
 
-/* ---------- Main Routes ---------- */
-
 app.use('/users', usersRouter);
 app.use('/items', itemsRouter);
 
-/* ---------- 404 Handler ---------- */
-
 app.use((req, res, next) => {
-  return next(new NotFoundError('Requested resource not found'));
+  next(new NotFoundError('Requested resource not found'));
 });
-
-/* ---------- Error Logging ---------- */
 
 app.use(errorLogger);
 
-/* ---------- Celebrate Errors ---------- */
-
 app.use(errors());
-
-<<<<<<< HEAD
 /* ---------- Centralized Error Handler ---------- */
 
 app.use(errorHandler);
-=======
-app.use((err, req, res, next) => {
-  const { statusCode = 500, message } = err;
-  res.status(statusCode).send({
-    message: statusCode === 500 ? 'An error occurred on the server' : message,
-  });
-});
->>>>>>> 7e197c5 (Update auth, user model, and app configuration)
 
 app.listen(PORT, '0.0.0.0');
