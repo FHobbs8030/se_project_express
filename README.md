@@ -4,20 +4,38 @@ This repository contains the **backend API** for the WTWR (What To Wear) applica
 The server is built with **Express** and **MongoDB** and provides authentication, user management,
 and CRUD operations for clothing items.
 
+The backend powers the deployed React frontend and is exposed publicly through an Nginx reverse proxy.
+
+---
+
+## 🎥 Project Demo (Sprint 15)
+
+Watch the full demonstration of the WTWR full-stack application here:
+
+👉 [Watch the Demo Video](https://www.loom.com/share/7d5b4d9f876948bf949e946d714eca6f)
+
+The video walkthrough demonstrates:
+
+- User signup and authentication
+- Adding and deleting clothing items
+- Like / unlike functionality
+- Backend API functionality
+- Deployment of the application in a production environment
+
 ---
 
 ## Live Project
 
-Frontend (Production):
+Frontend (Production):  
 <https://fhobbs.twilightparadox.com>
 
-Backend API (Production Base URL):
+Backend API (Production Base URL):  
 <https://api.fhobbs.twilightparadox.com>
 
-Frontend Repository:
+Frontend Repository:  
 <https://github.com/FHobbs8030/se_project_react>
 
-Backend Repository:
+Backend Repository:  
 <https://github.com/FHobbs8030/se_project_express>
 
 ---
