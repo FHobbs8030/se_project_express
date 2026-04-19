@@ -37,6 +37,7 @@ app.use(
       'http://localhost:5175',
       'http://localhost:5173',
       'https://fhobbs.twilightparadox.com',
+      'https://fhobbs-wtwr.netlify.app',
     ],
     credentials: true,
   })
