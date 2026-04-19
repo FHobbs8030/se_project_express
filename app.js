@@ -53,7 +53,7 @@ app.use(cookieParser());
 
 app.use(requestLogger);
 
-app.use(express.static(path.join(process.cwd(), 'public')));
+app.use('/images', express.static(path.join(process.cwd(), 'public/images')));
 
 app.get('/', (req, res) => {
   res.send('API is running');
@@ -80,4 +80,7 @@ app.use(errorLogger);
 app.use(errors());
 app.use(errorHandler);
 
-app.listen(PORT, '0.0.0.0');
+app.listen(PORT, '0.0.0.0', () => {
+  // eslint-disable-next-line no-console
+  console.log(`Server running on port ${PORT}`);
+});
