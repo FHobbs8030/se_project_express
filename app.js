@@ -55,6 +55,10 @@ app.use(requestLogger);
 
 app.use(express.static(path.join(process.cwd(), 'public')));
 
+app.get('/', (req, res) => {
+  res.send('API is running');
+});
+
 app.get('/crash-test', () => {
   setTimeout(() => {
     throw new Error('Server will crash now');
