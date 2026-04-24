@@ -11,7 +11,8 @@ const { JWT_SECRET = 'dev-secret' } = process.env;
 
 export const createUser = async (req, res, next) => {
   try {
-    const { name, email, password, avatar } = req.body;
+    const { name, password, avatar } = req.body;
+    const email = req.body.email.toLowerCase();
 
     const hash = await bcrypt.hash(password, 10);
 
@@ -43,7 +44,8 @@ export const createUser = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const email = req.body.email.toLowerCase();
 
     const user = await User.findOne({ email }).select('+password');
 
@@ -64,8 +66,8 @@ export const login = async (req, res, next) => {
     return res
       .cookie('jwt', token, {
         httpOnly: true,
-        sameSite: 'lax',
-        secure: false,
+        sameSite: 'none',
+        secure: true,
         maxAge: 604800000,
         path: '/',
       })
@@ -84,8 +86,8 @@ export const logout = (_req, res) => {
   return res
     .cookie('jwt', '', {
       httpOnly: true,
-      sameSite: 'lax',
-      secure: false,
+      sameSite: 'none',
+      secure: true,
       expires: new Date(0),
       path: '/',
     })

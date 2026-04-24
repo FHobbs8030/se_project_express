@@ -5,6 +5,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { errors } from 'celebrate';
+import auth from './middlewares/auth.js';
 
 import usersRouter from './routes/users.js';
 import itemsRouter from './routes/items.js';
@@ -71,8 +72,8 @@ app.post('/signup', validateUserBody, createUser);
 app.post('/signin', validateLogin, login);
 app.post('/signout', logout);
 
-app.use('/users', usersRouter);
-app.use('/items', itemsRouter);
+app.use('/users', auth, usersRouter);
+app.use('/items', auth, itemsRouter);
 
 app.use((req, res, next) => {
   next(new NotFoundError('Requested resource not found'));
