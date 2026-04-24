@@ -19,8 +19,7 @@ import NotFoundError from './utils/errors/NotFoundError.js';
 
 dotenv.config();
 
-const { PORT = 3001, MONGO_URI = 'mongodb://127.0.0.1:27017/wtwr_db' } =
-  process.env;
+const { PORT = 3001, MONGO_URI } = process.env;
 
 mongoose.connect(MONGO_URI);
 
