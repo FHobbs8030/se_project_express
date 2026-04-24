@@ -2,139 +2,102 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
 
-import BadRequestError from '../utils/errors/BadRequestError.js';
-import ConflictError from '../utils/errors/ConflictError.js';
-import UnauthorizedError from '../utils/errors/UnauthorizedError.js';
-import NotFoundError from '../utils/errors/NotFoundError.js';
+const { JWT_SECRET = 'dev_secret' } = process.env;
 
-const { JWT_SECRET = 'dev-secret' } = process.env;
-
+// SIGNUP
 export const createUser = async (req, res, next) => {
   try {
-    const { name, password, avatar } = req.body;
-    const email = req.body.email.toLowerCase();
+    const { name, email, password, avatar } = req.body;
 
-    const hash = await bcrypt.hash(password, 10);
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      const err = new Error('User already exists');
+      err.statusCode = 409;
+      throw err;
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
       name,
       email,
-      password: hash,
+      password: hashedPassword,
       avatar,
     });
 
-    return res.status(201).send({
+    return res.status(201).json({
       _id: user._id,
       name: user.name,
       email: user.email,
       avatar: user.avatar,
+      createdAt: user.createdAt,
     });
   } catch (err) {
-    if (err.code === 11000) {
-      return next(new ConflictError('User already exists'));
-    }
-
-    if (err.name === 'ValidationError') {
-      return next(new BadRequestError('Invalid user data'));
-    }
-
+    if (!err.statusCode) err.statusCode = 400;
     return next(err);
   }
 };
 
+// LOGIN
 export const login = async (req, res, next) => {
   try {
-    const { password } = req.body;
-    const email = req.body.email.toLowerCase();
+    const { email, password } = req.body;
 
     const user = await User.findOne({ email }).select('+password');
-
     if (!user) {
-      return next(new UnauthorizedError('Incorrect email or password'));
+      const err = new Error('Incorrect email or password');
+      err.statusCode = 401;
+      throw err;
     }
 
-    const matched = await bcrypt.compare(password, user.password);
-
-    if (!matched) {
-      return next(new UnauthorizedError('Incorrect email or password'));
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      const err = new Error('Incorrect email or password');
+      err.statusCode = 401;
+      throw err;
     }
 
-    const token = jwt.sign({ _id: user._id }, JWT_SECRET, {
-      expiresIn: '7d',
-    });
+    const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
 
-    return res
-      .cookie('jwt', token, {
-        httpOnly: true,
-        sameSite: 'none',
-        secure: true,
-        maxAge: 604800000,
-        path: '/',
-      })
-      .send({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-      });
+    return res.status(200).json({ token });
+  } catch (err) {
+    if (!err.statusCode) err.statusCode = 400;
+    return next(err);
+  }
+};
+
+// LOGOUT
+export const logout = async (req, res, next) => {
+  try {
+    return res.status(204).send();
   } catch (err) {
     return next(err);
   }
 };
 
-export const logout = (_req, res) => {
-  return res
-    .cookie('jwt', '', {
-      httpOnly: true,
-      sameSite: 'none',
-      secure: true,
-      expires: new Date(0),
-      path: '/',
-    })
-    .send({ message: 'Logged out' });
-};
-
+// GET CURRENT USER
 export const getCurrentUser = async (req, res, next) => {
   try {
     const user = await User.findById(req.user._id);
-
-    if (!user) {
-      return next(new NotFoundError('User not found'));
-    }
-
-    return res.send({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-    });
+    return res.send(user);
   } catch (err) {
     return next(err);
   }
 };
 
+// UPDATE USER
 export const updateUser = async (req, res, next) => {
   try {
-    const user = await User.findByIdAndUpdate(req.user._id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const { name, avatar } = req.body;
 
-    if (!user) {
-      return next(new NotFoundError('User not found'));
-    }
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { name, avatar },
+      { new: true }
+    );
 
-    return res.send({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-    });
+    return res.send(user);
   } catch (err) {
-    if (err.name === 'ValidationError') {
-      return next(new BadRequestError('Invalid user data'));
-    }
-
     return next(err);
   }
 };
