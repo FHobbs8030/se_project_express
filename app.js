@@ -19,26 +19,29 @@ import NotFoundError from './utils/errors/NotFoundError.js';
 
 dotenv.config();
 
-const {
-  PORT = 3001,
-  MONGO_URI = 'mongodb://127.0.0.1:27017/wtwr_db',
-  CORS_ORIGIN,
-} = process.env;
+const { PORT = 3001, MONGO_URI = 'mongodb://127.0.0.1:27017/wtwr_db' } =
+  process.env;
 
 mongoose.connect(MONGO_URI);
 
 const app = express();
 app.set('trust proxy', 1);
 
+const allowedOrigins = [
+  'http://localhost:5175',
+  'http://localhost:5176',
+  'https://fhobbs.twilightparadox.com',
+  'https://se-project-react-kappa.vercel.app',
+];
+
 app.use(
   cors({
-    origin: CORS_ORIGIN || [
-      'http://localhost:5176',
-      'http://localhost:5175',
-      'http://localhost:5173',
-      'https://fhobbs.twilightparadox.com',
-      'https://fhobbs-wtwr.netlify.app',
-    ],
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error(`Not allowed by CORS: ${origin}`));
+    },
     credentials: true,
   })
 );
@@ -82,5 +85,5 @@ app.use(errorHandler);
 
 app.listen(PORT, '0.0.0.0', () => {
   // eslint-disable-next-line no-console
-  console.log(`Server running on port ${PORT}`);
+console.log(`Server running on port ${PORT}`);
 });
