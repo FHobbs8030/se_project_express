@@ -5,11 +5,13 @@ const { JWT_SECRET = 'dev-secret' } = process.env;
 
 export default function auth(req, _res, next) {
   try {
-    const token = req.cookies?.jwt;
+    const { authorization } = req.headers;
 
-    if (!token) {
+    if (!authorization || !authorization.startsWith('Bearer ')) {
       return next(new UnauthorizedError('Authorization required'));
     }
+
+    const token = authorization.replace('Bearer ', '');
 
     const payload = jwt.verify(token, JWT_SECRET);
 
