@@ -20,11 +20,16 @@ const app = express();
 
 app.use(
   cors({
-    origin: ['http://localhost:5173', 'https://fhobbs.twilightparadox.com'],
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:5175',
+      'https://fhobbs.twilightparadox.com',
+    ],
     credentials: true,
   })
 );
 
+app.options('*', cors());
 app.use(cookieParser());
 app.use(express.json());
 
