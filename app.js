@@ -24,6 +24,7 @@ app.use(
       'http://localhost:5173',
       'http://localhost:5175',
       'https://fhobbs.twilightparadox.com',
+      'https://se-project-react-kappa.vercel.app',
     ],
     credentials: true,
   })
