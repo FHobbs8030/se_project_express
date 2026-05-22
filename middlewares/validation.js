@@ -2,9 +2,14 @@ import { celebrate, Joi } from 'celebrate';
 import validator from 'validator';
 
 const validateAbsoluteURL = (value, helpers) => {
-  if (validator.isURL(value)) {
+  if (
+    validator.isURL(value, {
+      require_protocol: true,
+    })
+  ) {
     return value;
   }
+
   return helpers.error('string.uri');
 };
 

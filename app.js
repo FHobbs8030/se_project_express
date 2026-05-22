@@ -50,7 +50,7 @@ app.post('/signin', validateLogin, login);
 app.post('/signout', logout);
 
 app.use('/users', auth, usersRouter);
-app.use('/items', auth, itemsRouter);
+app.use('/items', itemsRouter);
 
 app.use(errors());
 
